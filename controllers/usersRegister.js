@@ -31,6 +31,21 @@ export const register = async (req, res) => {
   
 
   try {
+
+
+    let existingUser = await UsersDetails.findOne({ username });
+    console.log(
+      "Checking for existing user:",
+      username,
+      "Found:",
+      existingUser
+    );
+
+    if (existingUser) {
+      return res
+        .status(StatusCodes.FORBIDDEN)
+        .json({ error: "User already exists" });
+    }
    
                 
     let user = new UsersDetails({ username, age, email, Phone,Address});

@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRou from './routes/auth.js';
 import eventRou from './routes/productsadding.js';
+import Booking from './routes/orders.js';
 import { StatusCodes} from 'http-status-codes';
 import mongoose from 'mongoose';
 // import dbConnect from './utils/db.js';
@@ -32,7 +33,7 @@ mongoose.connect(process.env.MONGO_URL, {
 // Routes
 app.use('/auth', authRou);
 app.use('/product', eventRou);
-// app.use('/booking', Booking);
+app.use('/booking', Booking);
 
 
 
