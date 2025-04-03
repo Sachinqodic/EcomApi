@@ -9,12 +9,13 @@ const userRegisterValidation = joi.object({
   email: joi.string().email().required().trim(),
   age:joi.number().required(),
   Phone:joi.number().required(),
-  Address:joi.string().required()
+  Address:joi.string().required(),
+  password:joi.string().required(),     
 
 });
 
 userRegisterValidation.requiredFieldsValidation = (data) => {
-  const requiredFields = ["username", "email", "age", "Phone","Address"];
+  const requiredFields = ["username", "email", "age", "Phone","Address","password"];
   for (let field of requiredFields) {
     if (!data[field]) {
       return {

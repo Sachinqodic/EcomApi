@@ -19,11 +19,19 @@ const productSchema = new mongoose.Schema({
     type:Number,
     required:true,
   },
-
+  category:{
+    type:String,
+    required:true
+  },
 
   quantityAvailable:{
     type:Number,
     required:true,
+  },
+  Bookedproducts:{
+    type:Number,
+    default:0,
+    required:true
   },
 
     manufactureredBy:{

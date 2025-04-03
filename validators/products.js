@@ -15,6 +15,9 @@ const EMcreateEventValidation = joi.object({
   manufactureredBy: joi.string().required().trim(),
 
   Ratings: joi.number().required().strict(),
+  Bookedproducts:joi.number().required().strict(),
+  category:joi.string().required().trim(),  
+
 
 
 });
@@ -26,7 +29,9 @@ EMcreateEventValidation.requiredFieldsValidation = (data) => {
     "price",
     "quantityAvailable",
     "manufactureredBy",
-    "Ratings"
+    "Ratings",
+    "Bookedproducts",
+    "category"
   ];
   
   for (let field of requiredFields) {

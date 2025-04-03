@@ -1,14 +1,21 @@
 import express from "express";
 import cors from "cors";
 
+import auth from "../middleware/authmiddle.js";
+
 
 import {
   myorders,
-  booking
+  booking,
+  getallorders,
+  cancelorder,
+  updatingbooking
   
-} from "../controllers/v1/eventopera.js";
 
-import UeventbookValidation from "../validators/booking.js";
+  
+} from "../controllers/bookings.js";
+
+import {UeventbookValidation} from "../validators/booking.js";
 
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 
@@ -20,8 +27,7 @@ const router = express.Router();
 
 
 
-router.post(
-  "/booking/:id",
+router.post("/book/:id",
 
   async (req, res) => {
 
@@ -31,24 +37,47 @@ router.post(
     if (NoSeatsError) {
       return res.status(StatusCodes.METHOD_NOT_ALLOWED).json({
         error: ReasonPhrases.BAD_REQUEST,
-        message: routesmessages.bookingroutes.bookingeventB,
+        message: "validation error while booking the product",
       });
     }
+    await auth(req, res);
+
 
     await booking(req,res);
   }
 );
 
+router.get("/allorders",async(req,res)=>{
 
-router.get(
-  "/myorders/:id",
+  await auth(req, res);
+
+ await getallorders(req,res);
+})
+
+
+router.get("/myorders/:id",
 
   async (req, res) => {
 
-
-    myorders(req, res);
+    await auth(req, res);
+    await myorders(req, res);
     
   }
 );
+
+
+router.put("/updateorder/:id",async(req,res)=>{
+
+  await auth(req, res);
+    
+  await updatingbooking(req,res);
+})
+
+router.delete("/calcelorder/:id",async(req,res)=>{
+
+  await auth(req, res);
+
+  await cancelorder(req,res);
+})
 
 export default router;

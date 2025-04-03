@@ -1,12 +1,20 @@
 import express from "express";
 
 import userRegisterValidation from "../validators/register.js";
+import userLoginvalidation from "../validators/login.js";
+import userLogoutValidation from "../validators/logout.js";
+
+import auth from "../middleware/authmiddle.js";
 
 
 
 
 import {
-  register
+  register,
+  login,
+  logout,
+  allusers
+
 } from "../controllers/usersRegister.js";
 
 import {
@@ -48,6 +56,61 @@ router.post("/register", async (req, res) => {
   await register(req, res);
 });
 
+
+router.post("/login", async (req, res) => {
+  let { error: missingFieldsError } =
+    userLoginvalidation.requiredFieldsValidation(req.body);
+
+  if (missingFieldsError) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: routesmessages.authroutes.loginmessagesA,
+    });
+  }
+
+  let { error: validationError } = userLoginvalidation.validate(req.body);
+
+  if (validationError) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: routesmessages.authroutes.loginmessagesB,
+    });
+  }
+
+  await login(req, res);
+})
+
+
+
+router.post("/logout",async(req,res)=>{
+  console.log(
+    req.headers["authorization"],
+    "this is the request header for me "
+  );
+  console.log(req.headers);
+
+  let { error } = userLogoutValidation.validate({
+    authorization: req.headers["authorization"],
+  });
+
+  if (error) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: routesmessages.authroutes.logoutmessagesA,
+    });
+  }
+
+  await auth(req, res);
+
+
+
+  await logout(req,res);
+})
+
+router.get("/allusers",async(req,res)=>{
+
+  await allusers(req,res);
+})
 
 
 

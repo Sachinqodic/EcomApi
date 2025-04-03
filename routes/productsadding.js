@@ -6,14 +6,15 @@ import {
   AddingProduct,
   getAllProducts,
   getProduct,
-  getMostRatingProducts
+  getMostRatingProducts,
+  bodygetallproducts
 
   
   
 } from "../controllers/products.js";
 
 
-
+import auth from "../middleware/authmiddle.js";
 
 import EMcreateEventValidation from "../validators/products.js";
 
@@ -26,8 +27,7 @@ app.use(cors());
 const router = express.Router();
 
 
-router.post(
-  "/addproduct",
+router.post("/addproduct",
 
   async (req, res) => {
     
@@ -51,22 +51,38 @@ router.post(
       });
     }
 
-
+await auth(req, res);
 
     await AddingProduct(req, res);
   }
 );
 
-router.get("/getallproducts", async (req, res) => {
+router.get("/getproducts", async (req, res) => {
+
+  console.log("inside the products")
+
+  await auth(req, res);
+  console.log("passed the middleaware")
   await getAllProducts(req, res);
 });
 
 router.get("/getproduct/:id", async (req, res) => {
+
+  await auth(req, res);
   await getProduct(req, res);
 });
 
+// through the body
+router.get("/bodygetproducts",async(req,res)=>{
+
+  await auth(req,res);
+  await bodygetallproducts(req,res)
+});
 
 router.get("/getmostratingproducts",async(req,res)=>{
+
+
+  await auth(req, res);
   await getMostRatingProducts(req,res);
 });
 

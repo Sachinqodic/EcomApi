@@ -1,6 +1,6 @@
 
 import express from "express";
-import mongoose from "mongoose";
+import mongoose, { Query } from "mongoose";
 
 
 const app = express();
@@ -15,7 +15,7 @@ const orderSchema = new mongoose.Schema({
     },
 
     OrderedBy:{
-        type:string,
+        type:String,
         required:true
     },
 
@@ -29,6 +29,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+    Quantity:{
+    type:Number,
+    required:true
+  },
  
   price:{
     type:Number,
@@ -39,7 +43,16 @@ const orderSchema = new mongoose.Schema({
   bill:{
     type:Number,
     required:true,
+  },
+  OrderplacedDate:{
+    type:Date,
+    default:Date.now(),
+    required:true
+
   }
+  
+
+  
 
   
 })
