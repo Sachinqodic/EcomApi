@@ -1,4 +1,3 @@
-
 import express from "express";
 import cors from "cors";
 
@@ -9,11 +8,7 @@ import UsersDetails from "../models/UsersDetails.js";
 
 import Logs from "../models/LoginLogoutDetails.js";
 
-
-
-import {
-  StatusCodes
-} from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 
 const app = express();
 
@@ -24,18 +19,12 @@ app.use(cors());
 
 console.log("Starting authopera.js...");
 
-
-
 export const register = async (req, res) => {
   console.log("iam inside the register controller");
 
-  let { username, age, email, Phone,Address,password} = req.body;
-
-  
+  let { username, age, email, Phone, Address, password } = req.body;
 
   try {
-
-
     let existingUser = await UsersDetails.findOne({ username });
     console.log(
       "Checking for existing user:",
@@ -49,9 +38,15 @@ export const register = async (req, res) => {
         .status(StatusCodes.FORBIDDEN)
         .json({ error: "User already exists" });
     }
-   
-                
-    let user = new UsersDetails({ username, age, email, Phone,Address,password});
+
+    let user = new UsersDetails({
+      username,
+      age,
+      email,
+      Phone,
+      Address,
+      password,
+    });
 
     await user.save();
 
@@ -62,7 +57,6 @@ export const register = async (req, res) => {
       .json({ message: "The endUser registered successfully" });
   } catch (err) {
     console.error("Error creating user:", err);
-   
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -70,11 +64,8 @@ export const register = async (req, res) => {
   }
 };
 
-
 export const login = async (req, res) => {
   let { username, password } = req.body;
-
- 
 
   try {
     console.log(req.body);
@@ -123,14 +114,11 @@ export const login = async (req, res) => {
 
     res.status(StatusCodes.OK).json({ token });
   } catch (err) {
-   
-
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Server error while logging in" });
   }
 };
-
 
 export const logout = async (req, res) => {
   try {
@@ -153,26 +141,21 @@ export const logout = async (req, res) => {
 
     res.json({ message: "Logout successful" });
   } catch (err) {
-   
-
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Server error while logging out" });
   }
 };
 
+export const allusers = async (req, res) => {
+  try {
+    let allusers = await UsersDetails.find({});
 
-export const allusers=async(req,res)=>{
-  try{
-    let allusers =await UsersDetails.find({});
-
-    res.status(StatusCodes.OK)
-    .json(allusers);
-
-  }catch(err){
+    res.status(StatusCodes.OK).json(allusers);
+  } catch (err) {
     console.log("error while getting all  the users:");
     return res
-    .status(StatusCodes.INTERNAL_SERVER_ERROR)
-    .json({error:"server error while getting the all users"})
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "server error while getting the all users" });
   }
-}
+};

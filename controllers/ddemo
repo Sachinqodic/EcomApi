@@ -20,3 +20,35 @@ console.log(obj);
 
 
 //  let data= await Products.find({$or:[{"productName":{$regex:`${search}`,$options:"i"}},{"category":{$regex:`${search}`,$options:"i"}}]}  );
+
+
+
+// db.Products.updateMany(
+//     { $or: [{ topOrdered: { $exists: false } }, { countid: { $exists: false } }] },
+//     { $set: { topOrdered: false, countid: 0 } }
+//   );
+  
+
+// https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/#:~:text=%24addFields%20appends%20new%20fields%20to,stages%20in%20an%20aggregation%20operation.&text=To%20add%20a%20field%20or,arrays)%20use%20the%20dot%20notation.
+
+
+// https://www.scaler.com/topics/cond-in-mongodb/
+
+
+// https://www.scaler.com/topics/cond-in-mongodb/
+
+// db.example.update({}, {$unset: {"tags.words":1}}, {multi: true});
+
+// https://www.mongodb.com/community/forums/t/group-by-specific-column-within-a-collection/221269/4
+
+
+// https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/
+
+
+// https://www.mongodb.com/docs/manual/reference/operator/aggregation/group/
+
+
+// https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/
+
+
+// https://www.mongodb.com/docs/manual/reference/operator/aggregation/documents/#std-label-documents-lookup-example

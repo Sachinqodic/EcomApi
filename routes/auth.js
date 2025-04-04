@@ -6,21 +6,14 @@ import userLogoutValidation from "../validators/logout.js";
 
 import auth from "../middleware/authmiddle.js";
 
-
-
-
 import {
   register,
   login,
   logout,
-  allusers
-
+  allusers,
 } from "../controllers/usersRegister.js";
 
-import {
-  ReasonPhrases,
-  StatusCodes
-} from "http-status-codes";
+import { ReasonPhrases, StatusCodes } from "http-status-codes";
 
 const app = express();
 
@@ -36,7 +29,7 @@ router.post("/register", async (req, res) => {
   if (missingFieldsError) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       error: ReasonPhrases.BAD_REQUEST,
-      message: "Missing required fields in the body for registartion", 
+      message: "Missing required fields in the body for registartion",
     });
   }
 
@@ -50,12 +43,9 @@ router.post("/register", async (req, res) => {
     });
   }
 
- 
-
   console.log("before going to the controller registartion");
   await register(req, res);
 });
-
 
 router.post("/login", async (req, res) => {
   let { error: missingFieldsError } =
@@ -78,11 +68,9 @@ router.post("/login", async (req, res) => {
   }
 
   await login(req, res);
-})
+});
 
-
-
-router.post("/logout",async(req,res)=>{
+router.post("/logout", async (req, res) => {
   console.log(
     req.headers["authorization"],
     "this is the request header for me "
@@ -102,16 +90,13 @@ router.post("/logout",async(req,res)=>{
 
   await auth(req, res);
 
+  await logout(req, res);
+});
 
+router.get(
+  "/allusers",
 
-  await logout(req,res);
-})
-
-router.get("/allusers",async(req,res)=>{
-
-  await allusers(req,res);
-})
-
-
+  allusers
+);
 
 export default router;

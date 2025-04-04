@@ -3,19 +3,15 @@ import cors from "cors";
 
 import auth from "../middleware/authmiddle.js";
 
-
 import {
   myorders,
   booking,
   getallorders,
   cancelorder,
-  updatingbooking
-  
-
-  
+  updatingbooking,
 } from "../controllers/bookings.js";
 
-import {UeventbookValidation} from "../validators/booking.js";
+import { UeventbookValidation } from "../validators/booking.js";
 
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 
@@ -25,12 +21,10 @@ app.use(cors());
 
 const router = express.Router();
 
-
-
-router.post("/book/:id",
+router.post(
+  "/book/:id",
 
   async (req, res) => {
-
     let { error: NoSeatsError } =
       UeventbookValidation.userNoOfSeatsValidation.validate(req.body);
 
@@ -42,42 +36,35 @@ router.post("/book/:id",
     }
     await auth(req, res);
 
-
-    await booking(req,res);
+    await booking(req, res);
   }
 );
 
-router.get("/allorders",async(req,res)=>{
-
+router.get("/allorders", async (req, res) => {
   await auth(req, res);
 
- await getallorders(req,res);
-})
+  await getallorders(req, res);
+});
 
-
-router.get("/myorders/:id",
+router.get(
+  "/myorders/:id",
 
   async (req, res) => {
-
     await auth(req, res);
     await myorders(req, res);
-    
   }
 );
 
-
-router.put("/updateorder/:id",async(req,res)=>{
-
-  await auth(req, res);
-    
-  await updatingbooking(req,res);
-})
-
-router.delete("/calcelorder/:id",async(req,res)=>{
-
+router.put("/updateorder/:id", async (req, res) => {
   await auth(req, res);
 
-  await cancelorder(req,res);
-})
+  await updatingbooking(req, res);
+});
+
+router.delete("/calcelorder/:id", async (req, res) => {
+  await auth(req, res);
+
+  await cancelorder(req, res);
+});
 
 export default router;

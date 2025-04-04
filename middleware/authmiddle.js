@@ -1,4 +1,3 @@
-
 import express from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
@@ -15,24 +14,22 @@ export default async (req, res, next) => {
   let token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ error: "No token provided" });
+    return res.status(401).json({ error: "No token provided" });
   }
 
-  console.log(token);
+  //console.log(token);
 
   try {
     // Verify the JWT token
     let decoded = jwt.verify(token, process.env.SEC);
     let userId = decoded.id;
 
-    console.log("FROM MIDDLEWARE ", decoded);
+    //console.log("FROM MIDDLEWARE ", decoded);
 
     // Check if the user has an active session in the Logs model
     const userLogs = await Logs.findOne({ UserId: userId });
 
-    console.log(userLogs, "I am from the logs model");
+    //console.log(userLogs, "I am from the logs model");
 
     // If no logs are found or if the UserToken is null, it means the user is logged out
     if (!userLogs || userLogs.UserToken === null) {
@@ -43,10 +40,8 @@ export default async (req, res, next) => {
 
     req.user = decoded;
 
-    console.log("end of the middlware");
+    //console.log("end of the middlware");
   } catch (err) {
-   
-
     return res
       .status(StatusCodes.UNAUTHORIZED)
       .json({ error: "Invalid token" });

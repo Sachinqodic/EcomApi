@@ -1,16 +1,11 @@
-
 import express from "express";
 import cors from "cors";
 
-
-
 import UsersDetails from "../models/UsersDetails.js";
 import Products from "../models/Products.js";
+import Orders from "../models/Orders.js";
 
-
-import {
-  StatusCodes
-} from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 
 const app = express();
 
@@ -21,244 +16,262 @@ app.use(cors());
 
 console.log("Starting authopera.js...");
 
+export const AddingProduct = async (req, res) => {
+  console.log("iam inside the add product controller");
+  console.log("only request", req);
 
-export const AddingProduct=async(req,res)=>{
+  console.log("only alog the user ", req.user);
+  // only alog the user  {
+  //  id: '67ee4c40dd5149f6ae458830',
+  // username: 'Rainacsk',
+  // iat: 1743670354
+  //}
 
-    console.log("iam inside the add product controller");
-    console.log("only request",req);
+  console.log("request with the req.user.id", req.user.id); // request with the req.user.id 67ee4c40dd5149f6ae458830
 
-    console.log("only alog the user ",req.user); 
-    // only alog the user  {
-      //  id: '67ee4c40dd5149f6ae458830',
-        // username: 'Rainacsk',
-        // iat: 1743670354
-      //}
+  let user = await UsersDetails.findById(req.user.id);
 
-    console.log("request with the req.user.id",req.user.id); // request with the req.user.id 67ee4c40dd5149f6ae458830
+  console.log(
+    user,
+    "iam getting the user from the middleware and  using int he controlller in adding products "
+  );
 
-
-    let user=await UsersDetails.findById(req.user.id);
-
-    console.log(user,"iam getting the user from the middleware and  using int he controlller in adding products ");
-
-    let {productName,productDescription,price,quantityAvailable,category,Bookedproducts,manufactureredBy,Ratings}=req.body;
-
-    try{
-
-        let product=new Products({productName,productDescription,price,category,quantityAvailable,Bookedproducts,manufactureredBy,Ratings});
-
-        await product.save();
-
-        console.log("The product added successfully:", product);
-
-        res
-          .status(StatusCodes.CREATED)
-          .json({ message: "The product added successfully" });
-
-    }
-    catch(err) {
-        console.error("Error adding the product:", err);
+  let {
+    productName,
+    productDescription,
+    price,
+    quantityAvailable,
+    category,
+    Bookedproducts,
+    manufactureredBy,
+    Ratings
    
-        return res
-          .status(StatusCodes.INTERNAL_SERVER_ERROR)
-          .json({ error: "server Error while adding the products" });
-    }
+  } = req.body;
+
+  try {
+    let product = new Products({
+      productName,
+      productDescription,
+      price,
+      category,
+      quantityAvailable,
+      Bookedproducts,
+      manufactureredBy,
+      Ratings
+    });
+
+    await product.save();
+
+    console.log("The product added successfully:", product);
+
+    res
+      .status(StatusCodes.CREATED)
+      .json({ message: "The product added successfully" });
+  } catch (err) {
+    console.error("Error adding the product:", err);
+
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "server Error while adding the products" });
+  }
 };
 
 // using the params
-export const getAllProducts=async(req,res)=>{
-    console.log("hai")
+export const getAllProducts = async (req, res) => {
+  console.log("hai");
 
-    let ls=req.query;
+  let ls = req.query;
 
-    let obj={}
+  let obj = {};
 
-let k1=Object.keys(ls)
+  let k1 = Object.keys(ls);
 
-let v1=Object.values(ls)
+  let v1 = Object.values(ls);
 
+  for (let i = 0; i < k1.length; i++) {
+    obj[k1[i]] = v1[i];
+  }
 
-for (let i=0;i<k1.length;i++){
-    obj[k1[i]]=v1[i]
+  console.log(obj);
 
-}
+  for (let j in ls) {
+    console.log(j); // getting key
+    console.log(ls[j]); // getting value
+  }
 
-console.log(obj)
+  console.log(ls);
 
-    
-    for( let j in ls){
-        console.log(j); // getting key
-        console.log(ls[j]); // getting value
-    }
+  let p = { ls };
 
-    console.log(ls)
+  try {
+    let products = await Products.find(obj);
 
-   
+    console.log("The products are:", products);
 
-    let p={ls}
-
-
-    try{
-
-        let products=await Products.find(obj)
-
-        console.log("The products are:", products);
-
-        res
-        .status(StatusCodes.OK)
-        .json({products});
-
-
-    }catch(err) {
-        console.log("error while getting all  the products:")
-        return res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({error:"server error while getting the products"})
-
-
-    }
+    res.status(StatusCodes.OK).json({ products });
+  } catch (err) {
+    console.log("error while getting all  the products:");
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "server error while getting the products" });
+  }
 };
-
-
 
 // using the body
-export const bodygetallproducts=async(req,res)=>{
+export const bodygetallproducts = async (req, res) => {
+  let { filter, search } = req.body;
 
-    let {filter,search}=req.body;
+  console.log(filter, " the filfer obj ");
+  console.log(search, "the search obj");
 
-    console.log(filter); 
-    console.log(search);
+  let obj = {};
 
-    
+  if (search != "" && filter == undefined) {
+    console.log("only the serach is present no filter condition");
 
-    let obj={}
+    obj = {
+      $or: [
+        { productName: { $regex: `${search}`, $options: "i" } },
+        { category: { $regex: `${search}`, $options: "i" } },
+      ],
+    };
+    console.log(obj);
+  }
 
-    
+  if (filter && search == undefined) {
+    console.log("only the filter is present no search condition");
+    obj = Object.assign(obj, filter);
+    console.log(obj, "the obj after the filter is applied");
+  } else if (search && filter) {
+    obj = {
+      $or: [
+        { productName: { $regex: `${search}`, $options: "i" } },
+        { category: { $regex: `${search}`, $options: "i" } },
+      ],
+    };
+    obj = Object.assign(obj, filter);
+    console.log(obj, "the obj after both the filter and search is applied");
+  }
 
-    if(filter==""&&search!=""){
+  // else if(search==""&&filter!=""){
 
-        obj={$or:[{"productName":{$regex:`${search}`,$options:"i"}},{"category":{$regex:`${search}`,$options:"i"}}]}
+  //     if(filter.price&&filter.category==""){
+  //         console.log("yes having only the price alone");
 
-    }
-    else if(search==""&&filter!=""){
+  //         obj={"price":{$lte:`${filter.price}`}}
+  //     }
 
-        if(filter.price&&filter.category==""){
-            console.log("yes having only the price alone");
+  //     else if(filter.price==""&&filter.category)
+  //     {
+  //         console.log("yes having only the category alone");
 
-            obj={"price":{$lte:`${filter.price}`}}
+  //         obj={"category":`${filter.category}`}
+  //     }
+
+  //     else
+  //     {
+  //         obj={"category":`${filter.category}`,"price":{$lte:`${filter.price}`}}
+
+  //     }
+
+  //     console.log("iam in the filfetr here ");
+
+  // }
+
+  // else if(search!=""&&filter!="")
+  // {
+
+  //    console.log(search);
+
+  //     let obj1={$or:[{"productName":{$regex:`${search}`,$options:"i"}},{"category":{$regex:`${search}`,$options:"i"}}],}
+
+  //    let obj2={"category":`${filter.category}`,"price":{$lte:`${filter.price}`}}
+
+  //  let res=Object.assign(obj1,obj2)
+
+  //  console.log("yes iam in both the search and filter")
+
+  //   console.log(res)
+
+  // }
+
+  // else{
+  //     console.log("iam in the else  block here ");
+  // }
+
+  try {
+    //let data =await Products.find(obj)
+
+    // let data=await Products.aggregate([
+    //     {$match:obj},
+    //     {$project:{"countid":0}}
+    // ])
+
+    let data1 = await Products.aggregate([
+      { $match: obj },
+
+      {
+        $lookup: {
+          from: "orders",
+          localField: "_id",
+          foreignField: "ProductId",
+          as: "results",
         }
+     },
 
-        else if(filter.price==""&&filter.category)
-        {
-            console.log("yes having only the category alone");
+      { $addFields: { "results_length": { $size: "$results" } } },
 
-            obj={"category":`${filter.category}`}
-        }
+      {
+        $addFields: {
+          topOrder: {
+            $cond: {
+              if: { $gte: ["$results_length", 5] },
+              then: "true",
+              else: "false",
+            },
+          },
+        },
+      },
 
-        else
-        {
-            obj={"category":`${filter.category}`,"price":{$lte:`${filter.price}`}}
+      { $project: { countid: 0, results: 0, results_length: 0 } },
+    ])
 
-        }
-
-
-        console.log("iam in the filfetr here ");
-
-
+    if (!data1.length) {
+      return res.status(StatusCodes.OK).json("no products find ");
     }
-
-    else if(search!=""&&filter!="")
-    {
-
-        console.log("yes iam in both the search and filter")
-
-        obj={$or:[{"productName":{$regex:`${search}`,$options:"i"}},{"category":{$regex:`${search}`,$options:"i"}}],}
-    }
-    else{
-        obj={}
-    }
-
-
-
-
-
-   
-
-
- 
-
-
-
-    try{
-
-
-        let data =await Products.find(obj)
-
-
-
-       // console.log(data)
-
-       if(data.length==0){
-        res
-        .status(StatusCodes.OK)
-        .json("no products find ");
-       }
-
-        res
-        .status(StatusCodes.OK)
-        .json(data);
-
-
-
-
-
-    }
-    catch(err){
-
-        console.log("error while getting all  the products:")
-        return res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({error:"server error while getting the products"})
-    }
-
-
-
-}
-
-
-export const getProduct=async(req,res)=>
-{
-    try{
-        let id=req.params.id;
-        let product=await Products.findById(id);
-        res
-        .status(StatusCodes.OK)
-        .json(product);
-
-    }catch(err) {
-
-        console.log("server error while gettings the proucts  BY ID")
-
-        res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({error:"server error while gettings the products by id"})
-
-    }
+    console.log("The products are:", data1);
+    return res.status(StatusCodes.OK).json(data1);
+  } catch (err) {
+    console.log("error while getting all  the products:");
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "server error while getting the products" });
+  }
 };
 
-export const getMostRatingProducts=async(req,res)=>{
+export const getProduct = async (req, res) => {
+  try {
+    let id = req.params.id;
+    let product = await Products.findById(id);
+    res.status(StatusCodes.OK).json(product);
+  } catch (err) {
+    console.log("server error while gettings the proucts  BY ID");
 
-    try{
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "server error while gettings the products by id" });
+  }
+};
 
-        let pro=await Products.find({ "Ratings":{$gt:3.9}})
+export const getMostRatingProducts = async (req, res) => {
+  try {
+    let pro = await Products.find({ Ratings: { $gt: 3.9 } });
 
-    res.status(StatusCodes.OK)
-    .json(pro);
-
-    } catch(err) {
-        console.log("server error while getting the most rating products")
-        res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({error:"server error while getting the most rating products"})
-    }
+    res.status(StatusCodes.OK).json(pro);
+  } catch (err) {
+    console.log("server error while getting the most rating products");
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "server error while getting the most rating products" });
+  }
 };

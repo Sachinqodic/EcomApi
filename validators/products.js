@@ -5,8 +5,7 @@ const app = express();
 app.use(express.json());
 
 const EMcreateEventValidation = joi.object({
-
-    productName: joi.string().required().trim(),
+  productName: joi.string().required().trim(),
   productDescription: joi.string().required().trim(),
 
   price: joi.number().min(1).required().strict(),
@@ -15,11 +14,8 @@ const EMcreateEventValidation = joi.object({
   manufactureredBy: joi.string().required().trim(),
 
   Ratings: joi.number().required().strict(),
-  Bookedproducts:joi.number().required().strict(),
-  category:joi.string().required().trim(),  
-
-
-
+  Bookedproducts: joi.number().required().strict(),
+  category: joi.string().required().trim(),
 });
 
 EMcreateEventValidation.requiredFieldsValidation = (data) => {
@@ -31,9 +27,9 @@ EMcreateEventValidation.requiredFieldsValidation = (data) => {
     "manufactureredBy",
     "Ratings",
     "Bookedproducts",
-    "category"
+    "category",
   ];
-  
+
   for (let field of requiredFields) {
     if (!(field in data)) {
       return {
