@@ -1,40 +1,21 @@
-import express from "express";
+import "../instrument.js";
+import * as Sentry from "@sentry/node";
 import cors from "cors";
-
-import UsersDetails from "../models/UsersDetails.js";
-import Products from "../models/Products.js";
+import express from "express";
 import Orders from "../models/Orders.js";
-
+import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
+import UsersDetails from "../models/UsersDetails.js";
 
 const app = express();
-
-// Middleware to parse JSON
 app.use(express.json());
-
 app.use(cors());
 
 console.log("Starting authopera.js...");
 
 export const AddingProduct = async (req, res) => {
-  console.log("iam inside the add product controller");
-  console.log("only request", req);
-
-  console.log("only alog the user ", req.user);
-  // only alog the user  {
-  //  id: '67ee4c40dd5149f6ae458830',
-  // username: 'Rainacsk',
-  // iat: 1743670354
-  //}
-
-  console.log("request with the req.user.id", req.user.id); // request with the req.user.id 67ee4c40dd5149f6ae458830
-
   let user = await UsersDetails.findById(req.user.id);
-
-  console.log(
-    user,
-    "iam getting the user from the middleware and  using int he controlller in adding products "
-  );
+  console.log("user info who adding the product:", user);
 
   let {
     productName,
@@ -44,8 +25,7 @@ export const AddingProduct = async (req, res) => {
     category,
     Bookedproducts,
     manufactureredBy,
-    Ratings
-   
+    Ratings,
   } = req.body;
 
   try {
@@ -57,18 +37,19 @@ export const AddingProduct = async (req, res) => {
       quantityAvailable,
       Bookedproducts,
       manufactureredBy,
-      Ratings
+      Ratings,
     });
 
     await product.save();
 
-    console.log("The product added successfully:", product);
-
     res
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
+
   } catch (err) {
+
     console.error("Error adding the product:", err);
+    Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -78,8 +59,6 @@ export const AddingProduct = async (req, res) => {
 
 // using the params
 export const getAllProducts = async (req, res) => {
-  console.log("hai");
-
   let ls = req.query;
 
   let obj = {};
@@ -94,23 +73,24 @@ export const getAllProducts = async (req, res) => {
 
   console.log(obj);
 
-  for (let j in ls) {
-    console.log(j); // getting key
-    console.log(ls[j]); // getting value
-  }
-
-  console.log(ls);
-
-  let p = { ls };
+  // remove later
+  // for (let j in ls) {
+  //   console.log(j); // getting key
+  //   console.log(ls[j]); // getting value
+  // }
+  // console.log(ls);
+  // let p = { ls };
 
   try {
     let products = await Products.find(obj);
 
     console.log("The products are:", products);
-
     res.status(StatusCodes.OK).json({ products });
+
   } catch (err) {
-    console.log("error while getting all  the products:");
+
+    console.log("error while getting all  the products:",err);
+    Sentry.captureException(err);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while getting the products" });
@@ -121,128 +101,98 @@ export const getAllProducts = async (req, res) => {
 export const bodygetallproducts = async (req, res) => {
   let { filter, search } = req.body;
 
-  console.log(filter, " the filfer obj ");
-  console.log(search, "the search obj");
+  let { page, limit } = req.query;
+  // used for skip from starting
+  const offset = (page - 1) * limit;
 
-  let obj = {};
-
-  if (search != "" && filter == undefined) {
-    console.log("only the serach is present no filter condition");
-
-    obj = {
-      $or: [
-        { productName: { $regex: `${search}`, $options: "i" } },
-        { category: { $regex: `${search}`, $options: "i" } },
-      ],
-    };
-    console.log(obj);
-  }
-
-  if (filter && search == undefined) {
-    console.log("only the filter is present no search condition");
-    obj = Object.assign(obj, filter);
-    console.log(obj, "the obj after the filter is applied");
-  } else if (search && filter) {
-    obj = {
-      $or: [
-        { productName: { $regex: `${search}`, $options: "i" } },
-        { category: { $regex: `${search}`, $options: "i" } },
-      ],
-    };
-    obj = Object.assign(obj, filter);
-    console.log(obj, "the obj after both the filter and search is applied");
-  }
-
-  // else if(search==""&&filter!=""){
-
-  //     if(filter.price&&filter.category==""){
-  //         console.log("yes having only the price alone");
-
-  //         obj={"price":{$lte:`${filter.price}`}}
-  //     }
-
-  //     else if(filter.price==""&&filter.category)
-  //     {
-  //         console.log("yes having only the category alone");
-
-  //         obj={"category":`${filter.category}`}
-  //     }
-
-  //     else
-  //     {
-  //         obj={"category":`${filter.category}`,"price":{$lte:`${filter.price}`}}
-
-  //     }
-
-  //     console.log("iam in the filfetr here ");
-
-  // }
-
-  // else if(search!=""&&filter!="")
-  // {
-
-  //    console.log(search);
-
-  //     let obj1={$or:[{"productName":{$regex:`${search}`,$options:"i"}},{"category":{$regex:`${search}`,$options:"i"}}],}
-
-  //    let obj2={"category":`${filter.category}`,"price":{$lte:`${filter.price}`}}
-
-  //  let res=Object.assign(obj1,obj2)
-
-  //  console.log("yes iam in both the search and filter")
-
-  //   console.log(res)
-
-  // }
-
-  // else{
-  //     console.log("iam in the else  block here ");
-  // }
+  console.log(filter,search)
 
   try {
-    //let data =await Products.find(obj)
+    // creating the object to be used in the query.
+    let obj = {};
 
-    // let data=await Products.aggregate([
-    //     {$match:obj},
-    //     {$project:{"countid":0}}
-    // ])
+    if (search != "" && filter == undefined) {
+      obj = {
+        $or: [
+          { productName: { $regex: `${search}`, $options: "i" } },
+          { category: { $regex: `${search}`, $options: "i" } },
+        ],
+      };
+      console.log(obj);
+    }
 
+    if (filter && search == undefined) {
+      obj = Object.assign(obj, filter);
+    } else if (search && filter) {
+      obj = {
+        $or: [
+          { productName: { $regex: `${search}`, $options: "i" } },
+          { category: { $regex: `${search}`, $options: "i" } },
+        ],
+      };
+      obj = Object.assign(obj, filter);
+    }
+
+    //  query to get the products.
     let data1 = await Products.aggregate([
       { $match: obj },
 
       {
         $lookup: {
           from: "orders",
-          localField: "_id",
-          foreignField: "ProductId",
+          let: { product_id: { $toString: "$_id" } },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$$product_id", "$ProductsIdList"],
+                },
+              },
+            },
+          ],
           as: "results",
-        }
-     },
+        },
+      },
 
-      { $addFields: { "results_length": { $size: "$results" } } },
+      {
+        $addFields: {
+          results_length: { $size: "$results" },
+        },
+      },
 
       {
         $addFields: {
           topOrder: {
             $cond: {
-              if: { $gte: ["$results_length", 5] },
-              then: "true",
-              else: "false",
+              if: { $gte: ["$results_length", 4] },
+              then: true,
+              else: false,
             },
           },
         },
       },
 
-      { $project: { countid: 0, results: 0, results_length: 0 } },
+      { $project: { results: 0 } },
     ])
+      .skip(parseInt(offset))
+      .limit(parseInt(limit));
 
     if (!data1.length) {
       return res.status(StatusCodes.OK).json("no products find ");
     }
     console.log("The products are:", data1);
-    return res.status(StatusCodes.OK).json(data1);
+
+    let Response = {
+      "Total products found:": data1.length,
+      Results: data1,
+    };
+    return res.status(StatusCodes.OK).json(Response);
+
   } catch (err) {
-    console.log("error while getting all  the products:");
+
+    console.log("error while getting all  the products:", err);
+    Sentry.captureException(err);
+
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while getting the products" });
@@ -255,7 +205,9 @@ export const getProduct = async (req, res) => {
     let product = await Products.findById(id);
     res.status(StatusCodes.OK).json(product);
   } catch (err) {
-    console.log("server error while gettings the proucts  BY ID");
+
+    console.log("server error while gettings the proucts  BY ID:",err);
+    Sentry.captureException(err);
 
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -268,8 +220,12 @@ export const getMostRatingProducts = async (req, res) => {
     let pro = await Products.find({ Ratings: { $gt: 3.9 } });
 
     res.status(StatusCodes.OK).json(pro);
+
   } catch (err) {
-    console.log("server error while getting the most rating products");
+
+    console.log("server error while getting the most rating products",err);
+    Sentry.captureException(err);
+
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while getting the most rating products" });

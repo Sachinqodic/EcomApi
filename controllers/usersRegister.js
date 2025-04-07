@@ -1,37 +1,24 @@
-import express from "express";
+import "../instrument.js";
+import * as Sentry from "@sentry/node";
 import cors from "cors";
-
+import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
+import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
-
 import Logs from "../models/LoginLogoutDetails.js";
 
-import { StatusCodes } from "http-status-codes";
-
 const app = express();
-
-// Middleware to parse JSON
 app.use(express.json());
-
 app.use(cors());
 
 console.log("Starting authopera.js...");
 
 export const register = async (req, res) => {
-  console.log("iam inside the register controller");
-
   let { username, age, email, Phone, Address, password } = req.body;
 
   try {
     let existingUser = await UsersDetails.findOne({ username });
-    console.log(
-      "Checking for existing user:",
-      username,
-      "Found:",
-      existingUser
-    );
 
     if (existingUser) {
       return res
@@ -50,13 +37,12 @@ export const register = async (req, res) => {
 
     await user.save();
 
-    console.log("The endUser registered,with the  details:", user);
-
     res
       .status(StatusCodes.CREATED)
       .json({ message: "The endUser registered successfully" });
   } catch (err) {
     console.error("Error creating user:", err);
+    Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -69,9 +55,8 @@ export const login = async (req, res) => {
 
   try {
     console.log(req.body);
-    let user = await UsersDetails.findOne({ username });
 
-    console.log("User found for login:", user ? user._id : "No user found");
+    let user = await UsersDetails.findOne({ username });
 
     if (!user) {
       return res
@@ -79,12 +64,7 @@ export const login = async (req, res) => {
         .json({ error: "User not found" });
     }
 
-    console.log("user details while logging in:", user);
-    console.log("before comparing the password", user.password);
-
     const isMatch = await bcrypt.compare(password, user.password);
-
-    console.log("Password match:", isMatch);
 
     if (!isMatch)
       return res
@@ -114,6 +94,9 @@ export const login = async (req, res) => {
 
     res.status(StatusCodes.OK).json({ token });
   } catch (err) {
+    console.log("Server error while login", err);
+    Sentry.captureException(err);
+
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Server error while logging in" });
@@ -123,7 +106,6 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     let authHeader = req.headers["authorization"];
-    console.log("Logout attempt, received token:", authHeader);
     let token = authHeader && authHeader.split(" ")[1];
 
     let decoded = jwt.verify(token, process.env.SEC);
@@ -141,6 +123,9 @@ export const logout = async (req, res) => {
 
     res.json({ message: "Logout successful" });
   } catch (err) {
+    console.log("server error while logging out:", err);
+    Sentry.captureException(err);
+
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Server error while logging out" });
@@ -153,7 +138,9 @@ export const allusers = async (req, res) => {
 
     res.status(StatusCodes.OK).json(allusers);
   } catch (err) {
-    console.log("error while getting all  the users:");
+    console.log("error while getting all  the users:", err);
+    Sentry.captureException(err);
+
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while getting the all users" });

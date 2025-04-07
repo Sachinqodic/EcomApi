@@ -15,29 +15,20 @@ const orderSchema = new mongoose.Schema({
     required: true,
   },
 
-  ProductId: {
-    type: mongoose.Schema.Types.ObjectId,
+  ProductsIdList: {
+    type: Array,
     required: true,
   },
 
-  productName: {
-    type: String,
+  Total_bill: {
+    type: Number,
     required: true,
   },
-  Quantity: {
-    type: Number,
+  Order_Summary: {
+    type: Array,
     required: true,
   },
 
-  price: {
-    type: Number,
-    required: true,
-  },
-
-  bill: {
-    type: Number,
-    required: true,
-  },
   OrderplacedDate: {
     type: Date,
     default: Date.now(),

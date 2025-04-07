@@ -1,58 +1,49 @@
-import express from "express";
+import "../instrument.js";
+import * as Sentry from "@sentry/node";
 import cors from "cors";
-
-import UsersDetails from "../models/UsersDetails.js";
-import Products from "../models/Products.js";
+import express from "express";
 import Orders from "../models/Orders.js";
-
+import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
+import UsersDetails from "../models/UsersDetails.js";
 
 const app = express();
-
-// Middleware to parse JSON
 app.use(express.json());
-
 app.use(cors());
-
-console.log("Starting authopera.js...");
 
 export const booking = async (req, res) => {
   let { NoOfItems } = req.body;
-
   let user = await UsersDetails.findById(req.user.id);
 
   try {
-    //let user=await UsersDetails.findById(req.user.id);
+    const product = await Products.findById(req.params.id);
 
-    // console.log(user)
-    const event = await Products.findById(req.params.id);
+    console.log("product details:", product);
 
-    console.log("Events details:", event);
-
-    if (event.quantityAvailable === 0) {
+    if (product.quantityAvailable === 0) {
       return res
         .status(StatusCodes.REQUEST_TIMEOUT)
         .json({ message: "No more seats available for booking" });
     }
 
-    if (NoOfItems > event.quantityAvailable) {
+    if (NoOfItems > product.quantityAvailable) {
       return res.status(StatusCodes.GONE).json({
-        message: `maximum number of seats can be booked :${event.quantityAvailable}, so please reduce the number of seats`,
+        message: `maximum number of prodcuts can be booked :${product.quantityAvailable}, so please reduce the number of products`,
       });
     }
 
-    console.log(event);
+    console.log(product);
 
     let userId = user.id;
 
     let OrderedBy = user.username;
 
-    let ProductId = event.id;
-    let productName = event.productName;
-    let price = event.price;
+    let ProductId = product.id;
+    let productName = product.productName;
+    let price = product.price;
     let Quantity = req.body.NoOfItems;
-    let bill = event.price * NoOfItems;
-    let category = event.category;
+    let bill = product.price * NoOfItems;
+    let category = product.category;
 
     console.log({ userId, OrderedBy, ProductId, productName, price, bill });
 
@@ -69,9 +60,9 @@ export const booking = async (req, res) => {
 
     await order.save();
 
-    const eventInfo = await Products.findById(req.params.id);
+    const productInfo = await Products.findById(req.params.id);
 
-    console.log(eventInfo, "product info");
+    console.log(productInfo, "product info");
 
     // eventInfo.countid=eventInfo.countid+1;
 
@@ -81,20 +72,79 @@ export const booking = async (req, res) => {
     //   eventInfo.topOrdered=true;
 
     // }
-    console.log(eventInfo.topOrdered, "top ordered is updated.");
+    console.log(productInfo.topOrdered, "top ordered is updated.");
 
-    (eventInfo.Bookedproducts = eventInfo.Bookedproducts + NoOfItems),
-      (eventInfo.quantityAvailable = eventInfo.quantityAvailable - NoOfItems);
+    (productInfo.Bookedproducts = productInfo.Bookedproducts + NoOfItems),
+      (productInfo.quantityAvailable =
+        productInfo.quantityAvailable - NoOfItems);
 
-    await eventInfo.save();
+    await productInfo.save();
 
-    console.log("The product added successfully:", eventInfo);
+    console.log("The product added successfully:", productInfo);
 
     res
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
   } catch (err) {
+
     console.error("Error adding the product:", err);
+    Sentry.captureException(err);
+
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "server Error while adding the products" });
+  }
+};
+
+export const multipleProductsbooking = async (req, res) => {
+  let booking = req.body;
+  let user = await UsersDetails.findById(req.user.id);
+
+  console.log(user);
+
+  console.log(booking);
+
+  try {
+    let userId = user.id;
+    let OrderedBy = user.username;
+    let ProductsIdList = [];
+
+    let Total_bill = 0;
+
+    let Order_Summary = [];
+
+    for (let i = 0; i < booking.length; i++) {
+      ProductsIdList.push(booking[i].productid);
+
+      let res = await Products.findById(booking[i].productid);
+      Total_bill = Total_bill + res.price * booking[i].Noofitems;
+
+      let productid = booking[i].productid;
+      let productName = res.productName;
+      let Quantity = booking[i].Noofitems;
+      let price = res.price;
+      let Total = booking[i].Noofitems * res.price;
+
+      Order_Summary.push({ productid, productName, Quantity, price, Total });
+    }
+
+    let order = new Orders({
+      userId,
+      OrderedBy,
+      ProductsIdList,
+      Total_bill,
+      Order_Summary,
+    });
+
+    await order.save();
+    console.log(order);
+
+    return res.status(StatusCodes.OK).json(order);
+
+  } catch (err) {
+
+    console.log("server error while booking the products:", err);
+    Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -103,35 +153,72 @@ export const booking = async (req, res) => {
 };
 
 export const getallorders = async (req, res) => {
+  const { page, limit } = req.query;
+  const offset = (page - 1) * limit;
+
   try {
-    let allorders = await Orders.find({});
-
-    console.log("The orders are:", allorders);
-
-    let alll = await Orders.aggregate([
+    let allorders = await Orders.aggregate([
       {
-        $project: { productName: 1, Quantity: 1, bill: 1, OrderplacedDate: 1 },
+        $match: {},
       },
-    ]);
+      {
+        $project: { Order_Summary: 0 },
+      },
+    ])
+      .skip(parseInt(offset))
+      .limit(parseInt(limit));
 
-    res.status(StatusCodes.OK).json(alll);
+    res.status(StatusCodes.OK).json(allorders);
   } catch (err) {
-    console.log("error while getting all  the orders:");
+
+    console.log("error while getting all  the orders:", err);
+    Sentry.captureException(err);
+
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while getting the all orders" });
   }
 };
 
+export const orderDetails = async (req, res) => {
+  const { page, limit } = req.query;
+  const offset = (page - 1) * limit;
+
+  try {
+    let allorders = await Orders.aggregate([
+      {
+        $match: {},
+      },
+      {
+        $project: { Order_Summary: 1 },
+      },
+    ])
+      .skip(parseInt(offset))
+      .limit(parseInt(limit));
+
+    res.status(StatusCodes.OK).json(allorders);
+  } catch (err) {
+
+    consosle.log("server error while getting the order details:", err);
+    Sentry.captureException(err);
+
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "server error while getting the order details." });
+  }
+};
+
 export const myorders = async (req, res) => {
   try {
     let id = req.params.id;
-
     let orders = await Orders.findById(id);
 
     res.status(StatusCodes.OK).json(orders);
   } catch (err) {
-    console.log("error while getting all  the orders:");
+
+    console.log("error while getting all  the orders:", err);
+    Sentry.captureException(err);
+
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while getting the all my orders" });
@@ -142,24 +229,22 @@ export const updatingbooking = async (req, res) => {
   let { NoOfItems } = req.body;
 
   try {
-    console.log(req.user.id, "fecthing the user id");
     const book = await Orders.findByIdAndUpdate(req.params.id);
-    console.log(book, "this is booking data");
 
     if (!book || book.userId.toString() !== req.user.id) {
-      return res
-        .status(StatusCodes.GONE)
-        .json({
-          error:
-            "id invalid or id not found in the orders collection while updating the orders",
-        });
+      return res.status(StatusCodes.GONE).json({
+        error:
+          "id invalid or id not found in the orders collection while updating the orders",
+      });
     }
 
-    const eventInfoUpdation = await Products.findByIdAndUpdate(book.ProductId);
+    const productInfoUpdation = await Products.findByIdAndUpdate(
+      book.ProductId
+    );
 
-    if (NoOfItems > eventInfoUpdation.quantityAvailable) {
+    if (NoOfItems > productInfoUpdation.quantityAvailable) {
       return res.status(StatusCodes.UNSUPPORTED_MEDIA_TYPE).json({
-        message: `maximum number of items can be ordered :${eventInfoUpdation.quantityAvailable}, so please reduce the number of items`,
+        message: `maximum number of items can be ordered :${productInfoUpdation.quantityAvailable}, so please reduce the number of items`,
       });
     }
 
@@ -171,33 +256,38 @@ export const updatingbooking = async (req, res) => {
 
     if (NoOfItems) {
       if (book.Quantity > NoOfItems) {
-        eventInfoUpdation.quantityAvailable =
-          eventInfoUpdation.quantityAvailable + (book.Quantity - NoOfItems);
+        productInfoUpdation.quantityAvailable =
+          productInfoUpdation.quantityAvailable + (book.Quantity - NoOfItems);
 
-        eventInfoUpdation.Bookedproducts =
-          eventInfoUpdation.Bookedproducts - (book.Quantity - NoOfItems);
+        productInfoUpdation.Bookedproducts =
+          productInfoUpdation.Bookedproducts - (book.Quantity - NoOfItems);
 
-        book.bill = NoOfItems * eventInfoUpdation.price;
+        book.bill = NoOfItems * productInfoUpdation.price;
 
         book.Quantity = NoOfItems;
       } else if (book.Quantity < NoOfItems) {
-        eventInfoUpdation.quantityAvailable =
-          eventInfoUpdation.quantityAvailable - (NoOfItems - book.Quantity);
+        productInfoUpdation.quantityAvailable =
+          productInfoUpdation.quantityAvailable - (NoOfItems - book.Quantity);
 
-        eventInfoUpdation.Bookedproducts =
-          eventInfoUpdation.Bookedproducts + (NoOfItems - book.Quantity);
+        productInfoUpdation.Bookedproducts =
+          productInfoUpdation.Bookedproducts + (NoOfItems - book.Quantity);
 
-        book.bill = NoOfItems * eventInfoUpdation.price;
+        book.bill = NoOfItems * productInfoUpdation.price;
 
         book.Quantity = NoOfItems;
       }
     }
-    await eventInfoUpdation.save();
 
+    await productInfoUpdation.save();
     await book.save();
 
     res.status(StatusCodes.OK).json(book);
+
   } catch (err) {
+
+    console.log("server error while updating the order:", err);
+    Sentry.captureException(err);
+
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while updating the orders" });
@@ -206,39 +296,40 @@ export const updatingbooking = async (req, res) => {
 
 export const cancelorder = async (req, res) => {
   try {
-    const event = await Orders.findByIdAndDelete(req.params.id);
+    const product = await Orders.findByIdAndDelete(req.params.id);
 
-    console.log("Order details:", event);
-    console.log("User details:", req.user.id);
+    console.log("Order details:", product);
 
-    if (!event || event.userId.toString() !== req.user.id) {
+    if (!product || product.userId.toString() !== req.user.id) {
       return res.status(StatusCodes.REQUEST_TIMEOUT).json({
         message: "id invalid or id not found in the orders collection",
       });
     }
 
-    const NoOfItemsForBooked = event.Quantity;
+    const NoOfItemsForBooked = product.Quantity;
 
-    const events = await Products.findByIdAndUpdate(event.ProductId);
+    const products = await Products.findByIdAndUpdate(product.ProductId);
 
-    events.countid = events.countid - 1;
+    products.countid = products.countid - 1;
 
-    console.log(events.countid, "count id is updated.");
+    // if (products.countid < 5) {
+    //   products.topOrdered = false;
+    // }
 
-    if (events.countid < 5) {
-      events.topOrdered = false;
-    }
-    console.log(events.topOrdered, "top ordered is updated.");
+    products.Bookedproducts = products.Bookedproducts - NoOfItemsForBooked;
+    products.quantityAvailable =
+      products.quantityAvailable + NoOfItemsForBooked;
 
-    events.Bookedproducts = events.Bookedproducts - NoOfItemsForBooked;
-
-    events.quantityAvailable = events.quantityAvailable + NoOfItemsForBooked;
-
-    await events.save();
+    await products.save();
     res
       .status(StatusCodes.OK)
       .json({ message: "Order cancelled successfully" });
+
   } catch (err) {
+
+    console.log("server error while cancelling the booking");
+    Sentry.captureException(err);
+
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server Error while canceling the orders" });

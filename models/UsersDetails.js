@@ -1,6 +1,5 @@
 import express from "express";
 import mongoose from "mongoose";
-
 import bcrypt from "bcrypt";
 
 const app = express();
@@ -41,5 +40,4 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-//module.exports=mongoose.model('User',userSchema);
 export default mongoose.model("UsersDetails", userSchema);

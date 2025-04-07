@@ -1,9 +1,10 @@
-import express from "express";
+import "../instrument.js";
+import * as Sentry from "@sentry/node";
 import cors from "cors";
+import express from "express";
 import jwt from "jsonwebtoken";
 import Logs from "../models/LoginLogoutDetails.js";
-
-import { ReasonPhrases, StatusCodes } from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 
 const app = express();
 app.use(express.json());
@@ -17,19 +18,13 @@ export default async (req, res, next) => {
     return res.status(401).json({ error: "No token provided" });
   }
 
-  //console.log(token);
-
   try {
     // Verify the JWT token
     let decoded = jwt.verify(token, process.env.SEC);
     let userId = decoded.id;
 
-    //console.log("FROM MIDDLEWARE ", decoded);
-
     // Check if the user has an active session in the Logs model
     const userLogs = await Logs.findOne({ UserId: userId });
-
-    //console.log(userLogs, "I am from the logs model");
 
     // If no logs are found or if the UserToken is null, it means the user is logged out
     if (!userLogs || userLogs.UserToken === null) {
@@ -37,11 +32,13 @@ export default async (req, res, next) => {
         .status(StatusCodes.NOT_ACCEPTABLE)
         .json({ error: "User is logged out" });
     }
-
     req.user = decoded;
-
-    //console.log("end of the middlware");
+    //next() // to pass the contolle to the next middleware are controller logic
   } catch (err) {
+
+    console.log("server error in the middleware:",err)
+    Sentry.captureException(err);
+
     return res
       .status(StatusCodes.UNAUTHORIZED)
       .json({ error: "Invalid token" });

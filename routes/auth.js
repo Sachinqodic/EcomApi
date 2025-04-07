@@ -1,19 +1,15 @@
 import express from "express";
-
-import userRegisterValidation from "../validators/register.js";
+import auth from "../middleware/authmiddle.js";
 import userLoginvalidation from "../validators/login.js";
 import userLogoutValidation from "../validators/logout.js";
-
-import auth from "../middleware/authmiddle.js";
-
+import userRegisterValidation from "../validators/register.js";
+import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import {
   register,
   login,
   logout,
   allusers,
 } from "../controllers/usersRegister.js";
-
-import { ReasonPhrases, StatusCodes } from "http-status-codes";
 
 const app = express();
 
@@ -93,10 +89,6 @@ router.post("/logout", async (req, res) => {
   await logout(req, res);
 });
 
-router.get(
-  "/allusers",
-
-  allusers
-);
+router.get("/allusers", allusers);
 
 export default router;

@@ -1,54 +1,241 @@
-const keys = ['key1', 'key2', 'key3'];
-const values = ['value1', 'value2', 'value3'];
+// const keys = ['key1', 'key2', 'key3'];
+// const values = ['value1', 'value2', 'value3'];
 
-const obj = {};
-for (let i = 0; i < keys.length; i++) {
-    obj[keys[i]] = values[i];
-}
-
-console.log(obj);
-// Output: { key1: 'value1', key2: 'value2', key3: 'value3' }
-
-
-// {
-//     "filter": {
-//         "price": 0,
-//         "category": "Electronics"
-//     },
-//     "search": "jbvrjevdfkljsbvnrje"
+// const obj = {};
+// for (let i = 0; i < keys.length; i++) {
+//     obj[keys[i]] = values[i];
 // }
 
+// console.log(obj);
+// // Output: { key1: 'value1', key2: 'value2', key3: 'value3' }
 
-//  let data= await Products.find({$or:[{"productName":{$regex:`${search}`,$options:"i"}},{"category":{$regex:`${search}`,$options:"i"}}]}  );
+
+// // {
+// //     "filter": {
+// //         "price": 0,
+// //         "category": "Electronics"
+// //     },
+// //     "search": "jbvrjevdfkljsbvnrje"
+// // }
+
+
+// //  let data= await Products.find({$or:[{"productName":{$regex:`${search}`,$options:"i"}},{"category":{$regex:`${search}`,$options:"i"}}]}  );
 
 
 
-// db.Products.updateMany(
-//     { $or: [{ topOrdered: { $exists: false } }, { countid: { $exists: false } }] },
-//     { $set: { topOrdered: false, countid: 0 } }
-//   );
+// // db.Products.updateMany(
+// //     { $or: [{ topOrdered: { $exists: false } }, { countid: { $exists: false } }] },
+// //     { $set: { topOrdered: false, countid: 0 } }
+// //   );
   
 
-// https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/#:~:text=%24addFields%20appends%20new%20fields%20to,stages%20in%20an%20aggregation%20operation.&text=To%20add%20a%20field%20or,arrays)%20use%20the%20dot%20notation.
+// // https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/#:~:text=%24addFields%20appends%20new%20fields%20to,stages%20in%20an%20aggregation%20operation.&text=To%20add%20a%20field%20or,arrays)%20use%20the%20dot%20notation.
 
 
-// https://www.scaler.com/topics/cond-in-mongodb/
+// // https://www.scaler.com/topics/cond-in-mongodb/
 
 
-// https://www.scaler.com/topics/cond-in-mongodb/
+// // https://www.scaler.com/topics/cond-in-mongodb/
 
-// db.example.update({}, {$unset: {"tags.words":1}}, {multi: true});
+// // db.example.update({}, {$unset: {"tags.words":1}}, {multi: true});
 
-// https://www.mongodb.com/community/forums/t/group-by-specific-column-within-a-collection/221269/4
-
-
-// https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/
+// // https://www.mongodb.com/community/forums/t/group-by-specific-column-within-a-collection/221269/4
 
 
-// https://www.mongodb.com/docs/manual/reference/operator/aggregation/group/
+// // https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/
 
 
-// https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/
+// // https://www.mongodb.com/docs/manual/reference/operator/aggregation/group/
 
 
-// https://www.mongodb.com/docs/manual/reference/operator/aggregation/documents/#std-label-documents-lookup-example
+// // https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/
+
+
+// // https://www.mongodb.com/docs/manual/reference/operator/aggregation/documents/#std-label-documents-lookup-example
+
+
+
+// // .countDocuments() or .estimatedDocumentCount() for the total count.
+
+
+// let data1 = await Products.aggregate([
+//     { $match: obj },
+//     {
+//       $lookup: {
+//         from: "orders",
+//         localField: "_id",
+//         foreignField: "ProductId",
+//         as: "results",
+//       }
+//     },
+//     { $addFields: { "results_length": { $size: "$results" } } },
+//     {
+//       $addFields: {
+//         topOrder: {
+//           $cond: {
+//             if: { $gte: ["$results_length", 5] },
+//             then: "true",
+//             else: "false",
+//           },
+//         },
+//       },
+//     },
+//     { $project: { countid: 0, results: 0, results_length: 0 } },
+//     { $count: "totalProducts" } 
+// ]);
+
+// if (!data1.length) {
+//   return res.status(StatusCodes.OK).json("no products found");
+// }
+
+// let Response = {
+//   "Total products found": data1[0].totalProducts,
+// };
+
+
+// let Response = {
+//     "Total products found": data1.length, // Counts the number of products
+//     "Query Results": data1, // Includes the list of products
+//   };
+// return res.status(StatusCodes.OK).json(Response);
+
+// in one order i need to book may products , earlier i was  joing the tables based on Productid from the orders tables, 
+
+// but i know  in the orders table i have the Array of the Produsts which iam booking at this time my array name is ProductsIdList , 
+
+// so here in below code earlier i sended deirect productid   foreignField: "ProductId",  but know i need to take teh product id from the above array , how i need to write code below code 
+
+
+
+let data1 = await Products.aggregate([
+      { $match: obj },
+
+      {
+        $lookup: {
+          from: "orders",
+          localField: "_id",
+          foreignField: "ProductId",
+          as: "results",
+        }
+     },
+
+      { $addFields: { "results_length": { $size: "$results" } } },
+
+      {
+        $addFields: {
+          topOrder: {
+            $cond: {
+              if: { $gte: ["$results_length", 5] },
+              then: "true",
+              else: "false",
+            },
+          },
+        },
+      },
+
+      { $project: { countid: 0, results: 0, results_length: 0 } },
+  
+    ])
+
+//    ..> $toString Conversion:
+// If _id in products is of type ObjectId and ProductsIdList in orders contains strings, MongoDB will fail to match them. The let variable now explicitly converts _id to a string.
+
+
+db.products.aggregate([
+
+    { $match: {obj} },
+
+    {
+        $lookup: {
+            from: "orders",
+            let: { product_id: { $toString: "$_id" } },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $in: ["$$product_id", "$ProductsIdList"]
+                        }
+                    }
+                }
+            ],
+            as: "results"
+        }
+    },
+
+    {
+        $addFields: {
+            results_length: { $size: "$results" }
+        }
+    },
+
+    {
+        $addFields: {
+            topOrder: {
+                $cond: {
+                    if: { $gte: ["$results_length", 4] },
+                    then: true,
+                    else: false
+                }
+            }
+        }
+    },
+
+{
+$project:{ results: 0,results_length: 1},
+}
+
+]);
+
+ Sentry.captureException(err);
+
+
+   
+    
+   
+   
+    
+    
+    
+   
+    
+    
+   
+    
+    
+    
+    
+    
+   
+   
+  
+   
+
+    
+
+    
+   
+   
+   
+    
+   
+    
+    
+   
+    
+    
+   
+    
+   
+    
+   
+    
+    
+    
+
+
+
+
+    
+  
+
+ 

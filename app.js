@@ -1,20 +1,25 @@
-import express from "express";
+import "./instrument.js";
+import * as Sentry from "@sentry/node";
 import cors from "cors";
 import dotenv from "dotenv";
-import authRou from "./routes/auth.js";
-import eventRou from "./routes/productsadding.js";
-import Booking from "./routes/orders.js";
-import { StatusCodes } from "http-status-codes";
+import express from "express";
 import mongoose from "mongoose";
+import authRou from "./routes/auth.js";
+import Booking from "./routes/orders.js";
+import eventRou from "./routes/productsadding.js";
+import { StatusCodes } from "http-status-codes";
+
 // import dbConnect from './utils/db.js';
 
-console.log("hello");
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 console.log("Mongo URI", process.env.MONGO_URL);
+
+//sentry set up
+Sentry.setupExpressErrorHandler(app);
 
 // Database connection
 mongoose
@@ -37,8 +42,7 @@ app.use("/booking", Booking);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res
-    .status(StatusCodes.INTERNAL_SERVER_ERROR)
+  res.status(StatusCodes.INTERNAL_SERVER_ERROR)
     .json({ error: "Internal Server Error" });
 });
 
