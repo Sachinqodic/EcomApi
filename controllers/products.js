@@ -102,10 +102,15 @@ export const bodygetallproducts = async (req, res) => {
   let { filter, search } = req.body;
 
   let { page, limit } = req.query;
-  // used for skip from starting
+  //used for skip from starting
   const offset = (page - 1) * limit;
 
-  console.log(filter,search)
+  console.log(filter,search);
+
+  console.log("filter :", filter);
+
+  console.log("search :", search);  
+
 
   try {
     // creating the object to be used in the query.
@@ -118,12 +123,15 @@ export const bodygetallproducts = async (req, res) => {
           { category: { $regex: `${search}`, $options: "i" } },
         ],
       };
-      console.log(obj);
+      console.log(obj,"only search");
     }
 
     if (filter && search == undefined) {
       obj = Object.assign(obj, filter);
+      console.log(obj,"only filter");
     } else if (search && filter) {
+
+
       obj = {
         $or: [
           { productName: { $regex: `${search}`, $options: "i" } },
@@ -131,7 +139,9 @@ export const bodygetallproducts = async (req, res) => {
         ],
       };
       obj = Object.assign(obj, filter);
+      console.log(obj,"both search and filter");
     }
+
 
     //  query to get the products.
     let data1 = await Products.aggregate([
@@ -174,13 +184,13 @@ export const bodygetallproducts = async (req, res) => {
 
       { $project: { results: 0 } },
     ])
-      .skip(parseInt(offset))
-      .limit(parseInt(limit));
+       .skip(parseInt(offset))
+       .limit(parseInt(limit));
 
     if (!data1.length) {
       return res.status(StatusCodes.OK).json("no products find ");
     }
-    console.log("The products are:", data1);
+    //console.log("The products are:", data1);
 
     let Response = {
       "Total products found:": data1.length,

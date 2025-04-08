@@ -33,7 +33,7 @@ export default async (req, res, next) => {
         .json({ error: "User is logged out" });
     }
     req.user = decoded;
-    //next() // to pass the contolle to the next middleware are controller logic
+    next() // to pass the contolle to the next middleware are controller logic
   } catch (err) {
 
     console.log("server error in the middleware:",err)

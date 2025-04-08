@@ -41,27 +41,12 @@ router.post("/addproduct", async (req, res) => {
   await AddingProduct(req, res);
 });
 
-router.get("/getproducts", async (req, res) => {
-  console.log("inside the products");
+router.get("/getproducts", auth,getAllProducts);
 
-  await auth(req, res);
-  console.log("passed the middleaware");
-  await getAllProducts(req, res);
-});
+router.get("/getproduct/:id", auth,getProduct);
 
-router.get("/getproduct/:id", async (req, res) => {
-  await auth(req, res);
-  await getProduct(req, res);
-});
+router.get("/bodygetproducts", auth, bodygetallproducts);
 
-router.get("/bodygetproducts", async (req, res) => {
-  await auth(req, res);
-  await bodygetallproducts(req, res);
-});
-
-router.get("/getmostratingproducts", async (req, res) => {
-  await auth(req, res);
-  await getMostRatingProducts(req, res);
-});
+router.get("/getmostratingproducts", auth,getMostRatingProducts);
 
 export default router;

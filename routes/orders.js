@@ -34,33 +34,16 @@ router.post("/book/:id", async (req, res) => {
   await booking(req, res);
 });
 
-router.post("/multipleProductsbooking", async (req, res) => {
-  await auth(req, res), await multipleProductsbooking(req, res);
-});
+router.post("/multipleProductsbooking", auth,multipleProductsbooking);
 
-router.get("/allorders", async (req, res) => {
-  await auth(req, res);
-  await getallorders(req, res);
-});
+router.get("/allorders", auth,getallorders);
 
-router.get("/oderdetails", async (req, res) => {
-  await auth(req, res);
-  await orderDetails(req, res);
-});
+router.get("/oderdetails", auth,orderDetails);
 
-router.get("/myorders/:id", async (req, res) => {
-  await auth(req, res);
-  await myorders(req, res);
-});
+router.get("/myorders/:id", auth,myorders);
 
-router.put("/updateorder/:id", async (req, res) => {
-  await auth(req, res);
-  await updatingbooking(req, res);
-});
+router.put("/updateorder/:id",auth,updatingbooking);
 
-router.delete("/calcelorder/:id", async (req, res) => {
-  await auth(req, res);
-  await cancelorder(req, res);
-});
+router.delete("/calcelorder/:id",auth,cancelorder);
 
 export default router;

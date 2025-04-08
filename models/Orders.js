@@ -36,5 +36,11 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
+
+orderSchema.index({OrderplacedDate:-1});
+
+
+//orderSchema.index({userId:"hashed"});
+
 //module.exports=mongoose.model('User',userSchema);
 export default mongoose.model("Orders", orderSchema);

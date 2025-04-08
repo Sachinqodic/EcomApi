@@ -164,6 +164,9 @@ export const getallorders = async (req, res) => {
       {
         $project: { Order_Summary: 0 },
       },
+      {
+        $sort:{OrderplacedDate:-1}
+      }
     ])
       .skip(parseInt(offset))
       .limit(parseInt(limit));
@@ -190,8 +193,11 @@ export const orderDetails = async (req, res) => {
         $match: {},
       },
       {
-        $project: { Order_Summary: 1 },
+        $project: { Order_Summary: 1 ,OrderplacedDate:1},
       },
+      {
+        $sort:{OrderplacedDate:-1}
+      }
     ])
       .skip(parseInt(offset))
       .limit(parseInt(limit));
