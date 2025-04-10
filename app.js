@@ -7,9 +7,8 @@ import mongoose from "mongoose";
 import authRou from "./routes/auth.js";
 import Booking from "./routes/orders.js";
 import eventRou from "./routes/productsadding.js";
+import payment from "./routes/payments.js";
 import { StatusCodes } from "http-status-codes";
-
-// import dbConnect from './utils/db.js';
 
 dotenv.config();
 
@@ -38,11 +37,13 @@ mongoose
 app.use("/auth", authRou);
 app.use("/product", eventRou);
 app.use("/booking", Booking);
+app.use("/payment", payment);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(StatusCodes.INTERNAL_SERVER_ERROR)
+  res
+    .status(StatusCodes.INTERNAL_SERVER_ERROR)
     .json({ error: "Internal Server Error" });
 });
 

@@ -1,9 +1,11 @@
 import express from "express";
 import auth from "../middleware/authmiddle.js";
+import { roleAuthentication } from "../constants/enums.js";
 import userLoginvalidation from "../validators/login.js";
 import userLogoutValidation from "../validators/logout.js";
 import userRegisterValidation from "../validators/register.js";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
+
 import {
   register,
   login,
@@ -13,12 +15,11 @@ import {
 
 const app = express();
 
-// Middleware to parse JSON
 app.use(express.json());
 
 const router = express.Router();
 
-router.post("/register", async (req, res) => {
+router.post("/register", (req, res) => {
   let { error: missingFieldsError } =
     userRegisterValidation.requiredFieldsValidation(req.body);
 
@@ -30,7 +31,6 @@ router.post("/register", async (req, res) => {
   }
 
   let { error: validationError } = userRegisterValidation.validate(req.body);
-  console.log("iam in the validation error");
 
   if (validationError) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
@@ -39,8 +39,7 @@ router.post("/register", async (req, res) => {
     });
   }
 
-  console.log("before going to the controller registartion");
-  await register(req, res);
+  roleAuthentication, register(req, res);
 });
 
 router.post("/login", async (req, res) => {
@@ -50,7 +49,7 @@ router.post("/login", async (req, res) => {
   if (missingFieldsError) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       error: ReasonPhrases.BAD_REQUEST,
-      message: routesmessages.authroutes.loginmessagesA,
+      message: "Missing required fields in the body for login",
     });
   }
 
@@ -59,7 +58,7 @@ router.post("/login", async (req, res) => {
   if (validationError) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
       error: ReasonPhrases.BAD_REQUEST,
-      message: routesmessages.authroutes.loginmessagesB,
+      message: "Invalid fields in the body for login",
     });
   }
 
@@ -67,12 +66,6 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", async (req, res) => {
-  console.log(
-    req.headers["authorization"],
-    "this is the request header for me "
-  );
-  console.log(req.headers);
-
   let { error } = userLogoutValidation.validate({
     authorization: req.headers["authorization"],
   });
@@ -80,7 +73,7 @@ router.post("/logout", async (req, res) => {
   if (error) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       error: ReasonPhrases.BAD_REQUEST,
-      message: routesmessages.authroutes.logoutmessagesA,
+      message: "Invalid fields in the body for logout",
     });
   }
 

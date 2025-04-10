@@ -1,5 +1,5 @@
 import express from "express";
-import mongoose, { Query } from "mongoose";
+import mongoose from "mongoose";
 
 const app = express();
 app.use(express.json());
@@ -8,6 +8,7 @@ const orderSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref: "UsersDetails",
   },
 
   OrderedBy: {
@@ -34,13 +35,23 @@ const orderSchema = new mongoose.Schema({
     default: Date.now(),
     required: true,
   },
+  PaymentStatus: {
+    type: String,
+    required: true,
+    enum: ["Paid", "Pending"],
+    default: "Pending",
+  },
+
+  ShipmentStatus: {
+    type: String,
+    required: true,
+    enum: ["confirmed", "Pending", "InTransit", "Received"],
+    default: "Pending",
+  },
 });
 
-
-orderSchema.index({OrderplacedDate:-1});
-
+orderSchema.index({ OrderplacedDate: -1 });
 
 //orderSchema.index({userId:"hashed"});
 
-//module.exports=mongoose.model('User',userSchema);
 export default mongoose.model("Orders", orderSchema);

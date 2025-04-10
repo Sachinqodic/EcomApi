@@ -45,9 +45,7 @@ export const AddingProduct = async (req, res) => {
     res
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
-
   } catch (err) {
-
     console.error("Error adding the product:", err);
     Sentry.captureException(err);
 
@@ -58,59 +56,53 @@ export const AddingProduct = async (req, res) => {
 };
 
 // using the params
-export const getAllProducts = async (req, res) => {
-  let ls = req.query;
+// export const getAllProducts = async (req, res) => {
+//   let ls = req.query;
 
-  let obj = {};
+//   let obj = {};
 
-  let k1 = Object.keys(ls);
+//   let k1 = Object.keys(ls);
 
-  let v1 = Object.values(ls);
+//   let v1 = Object.values(ls);
 
-  for (let i = 0; i < k1.length; i++) {
-    obj[k1[i]] = v1[i];
-  }
+//   for (let i = 0; i < k1.length; i++) {
+//     obj[k1[i]] = v1[i];
+//   }
 
-  console.log(obj);
+//   console.log(obj);
 
-  // remove later
-  // for (let j in ls) {
-  //   console.log(j); // getting key
-  //   console.log(ls[j]); // getting value
-  // }
-  // console.log(ls);
-  // let p = { ls };
+//   // remove later
+//   // for (let j in ls) {
+//   //   console.log(j); // getting key
+//   //   console.log(ls[j]); // getting value
+//   // }
+//   // console.log(ls);
+//   // let p = { ls };
 
-  try {
-    let products = await Products.find(obj);
+//   try {
+//     let products = await Products.find(obj);
 
-    console.log("The products are:", products);
-    res.status(StatusCodes.OK).json({ products });
+//     console.log("The products are:", products);
+//     res.status(StatusCodes.OK).json({ products });
 
-  } catch (err) {
+//   } catch (err) {
 
-    console.log("error while getting all  the products:",err);
-    Sentry.captureException(err);
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: "server error while getting the products" });
-  }
-};
+//     console.log("error while getting all  the products:",err);
+//     Sentry.captureException(err);
+//     return res
+//       .status(StatusCodes.INTERNAL_SERVER_ERROR)
+//       .json({ error: "server error while getting the products" });
+//   }
+// };
 
 // using the body
 export const bodygetallproducts = async (req, res) => {
   let { filter, search } = req.body;
 
+  // pagination
   let { page, limit } = req.query;
   //used for skip from starting
   const offset = (page - 1) * limit;
-
-  console.log(filter,search);
-
-  console.log("filter :", filter);
-
-  console.log("search :", search);  
-
 
   try {
     // creating the object to be used in the query.
@@ -123,15 +115,13 @@ export const bodygetallproducts = async (req, res) => {
           { category: { $regex: `${search}`, $options: "i" } },
         ],
       };
-      console.log(obj,"only search");
+      console.log(obj, "only search");
     }
 
     if (filter && search == undefined) {
       obj = Object.assign(obj, filter);
-      console.log(obj,"only filter");
+      console.log(obj, "only filter");
     } else if (search && filter) {
-
-
       obj = {
         $or: [
           { productName: { $regex: `${search}`, $options: "i" } },
@@ -139,9 +129,8 @@ export const bodygetallproducts = async (req, res) => {
         ],
       };
       obj = Object.assign(obj, filter);
-      console.log(obj,"both search and filter");
+      console.log(obj, "both search and filter");
     }
-
 
     //  query to get the products.
     let data1 = await Products.aggregate([
@@ -184,22 +173,19 @@ export const bodygetallproducts = async (req, res) => {
 
       { $project: { results: 0 } },
     ])
-       .skip(parseInt(offset))
-       .limit(parseInt(limit));
+      .skip(parseInt(offset))
+      .limit(parseInt(limit));
 
     if (!data1.length) {
       return res.status(StatusCodes.OK).json("no products find ");
     }
-    //console.log("The products are:", data1);
 
     let Response = {
       "Total products found:": data1.length,
       Results: data1,
     };
     return res.status(StatusCodes.OK).json(Response);
-
   } catch (err) {
-
     console.log("error while getting all  the products:", err);
     Sentry.captureException(err);
 
@@ -213,10 +199,10 @@ export const getProduct = async (req, res) => {
   try {
     let id = req.params.id;
     let product = await Products.findById(id);
+
     res.status(StatusCodes.OK).json(product);
   } catch (err) {
-
-    console.log("server error while gettings the proucts  BY ID:",err);
+    console.log("server error while gettings the proucts  BY ID:", err);
     Sentry.captureException(err);
 
     res
@@ -230,10 +216,8 @@ export const getMostRatingProducts = async (req, res) => {
     let pro = await Products.find({ Ratings: { $gt: 3.9 } });
 
     res.status(StatusCodes.OK).json(pro);
-
   } catch (err) {
-
-    console.log("server error while getting the most rating products",err);
+    console.log("server error while getting the most rating products", err);
     Sentry.captureException(err);
 
     res

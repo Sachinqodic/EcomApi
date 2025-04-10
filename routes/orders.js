@@ -34,16 +34,16 @@ router.post("/book/:id", async (req, res) => {
   await booking(req, res);
 });
 
-router.post("/multipleProductsbooking", auth,multipleProductsbooking);
+router.post("/multipleProductsbooking", auth, multipleProductsbooking);
 
-router.get("/allorders", auth,getallorders);
+router.get("/allorders", auth, getallorders);
 
-router.get("/oderdetails", auth,orderDetails);
+router.get("/oderdetails", auth, orderDetails);
 
-router.get("/myorders/:id", auth,myorders);
+router.get("/myorders/:id", auth, myorders);
 
-router.put("/updateorder/:id",auth,updatingbooking);
+router.put("/updateorder/:id", auth, updatingbooking);
 
-router.delete("/calcelorder/:id",auth,cancelorder);
+router.delete("/calcelorder/:id", auth, cancelorder);
 
 export default router;

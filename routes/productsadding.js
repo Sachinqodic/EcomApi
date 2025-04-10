@@ -5,7 +5,7 @@ import EMcreateEventValidation from "../validators/products.js";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import {
   AddingProduct,
-  getAllProducts,
+  //getAllProducts,
   getProduct,
   getMostRatingProducts,
   bodygetallproducts,
@@ -41,12 +41,12 @@ router.post("/addproduct", async (req, res) => {
   await AddingProduct(req, res);
 });
 
-router.get("/getproducts", auth,getAllProducts);
+//router.get("/getproducts", auth, getAllProducts);
 
-router.get("/getproduct/:id", auth,getProduct);
+router.get("/getproduct/:id", auth, getProduct);
 
 router.get("/bodygetproducts", auth, bodygetallproducts);
 
-router.get("/getmostratingproducts", auth,getMostRatingProducts);
+router.get("/getmostratingproducts", auth, getMostRatingProducts);
 
 export default router;

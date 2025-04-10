@@ -15,7 +15,7 @@ app.use(cors());
 console.log("Starting authopera.js...");
 
 export const register = async (req, res) => {
-  let { username, age, email, Phone, Address, password } = req.body;
+  let { username, age, email, Phone, Address, password, role } = req.body;
 
   try {
     let existingUser = await UsersDetails.findOne({ username });
@@ -33,6 +33,7 @@ export const register = async (req, res) => {
       Phone,
       Address,
       password,
+      role,
     });
 
     await user.save();
@@ -71,7 +72,8 @@ export const login = async (req, res) => {
         .status(StatusCodes.FORBIDDEN)
         .json({ error: "Invalid credentials" });
 
-    let payload = { id: user._id, username: user.username };
+    let payload = { id: user._id, username: user.username, role: user.role };
+    console.log(payload);
     const token = jwt.sign(payload, process.env.SEC);
 
     console.log(token);

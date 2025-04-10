@@ -10,7 +10,14 @@ const userRegisterValidation = joi.object({
   age: joi.number().required(),
   Phone: joi.number().required(),
   Address: joi.string().required(),
-  password: joi.string().required(),
+  password: joi
+    .string()
+    .pattern(
+      new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[a-zA-Z\\d\\W_]{8,30}$")
+    )
+    .required()
+    .trim(),
+  role: joi.string().required(),
 });
 
 userRegisterValidation.requiredFieldsValidation = (data) => {
@@ -21,6 +28,7 @@ userRegisterValidation.requiredFieldsValidation = (data) => {
     "Phone",
     "Address",
     "password",
+    "role",
   ];
   for (let field of requiredFields) {
     if (!data[field]) {

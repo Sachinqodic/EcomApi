@@ -6,11 +6,13 @@ import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
+import mongoose, { ObjectId } from "mongoose";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+// single product booking
 export const booking = async (req, res) => {
   let { NoOfItems } = req.body;
   let user = await UsersDetails.findById(req.user.id);
@@ -86,7 +88,6 @@ export const booking = async (req, res) => {
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
   } catch (err) {
-
     console.error("Error adding the product:", err);
     Sentry.captureException(err);
 
@@ -96,21 +97,19 @@ export const booking = async (req, res) => {
   }
 };
 
+// multiple products booking
 export const multipleProductsbooking = async (req, res) => {
   let booking = req.body;
   let user = await UsersDetails.findById(req.user.id);
 
   console.log(user);
-
   console.log(booking);
 
   try {
     let userId = user.id;
     let OrderedBy = user.username;
     let ProductsIdList = [];
-
     let Total_bill = 0;
-
     let Order_Summary = [];
 
     for (let i = 0; i < booking.length; i++) {
@@ -139,10 +138,22 @@ export const multipleProductsbooking = async (req, res) => {
     await order.save();
     console.log(order);
 
+    booking.forEach(demo);
+
+    async function demo(x) {
+      console.log(x.productid, x.Noofitems);
+
+      const productInfo = await Products.findById(x.productid);
+
+      (productInfo.Bookedproducts = productInfo.Bookedproducts + x.Noofitems),
+        (productInfo.quantityAvailable =
+          productInfo.quantityAvailable - x.Noofitems);
+
+      await productInfo.save();
+    }
+
     return res.status(StatusCodes.OK).json(order);
-
   } catch (err) {
-
     console.log("server error while booking the products:", err);
     Sentry.captureException(err);
 
@@ -156,24 +167,34 @@ export const getallorders = async (req, res) => {
   const { page, limit } = req.query;
   const offset = (page - 1) * limit;
 
+  console.log(req.user);
+  console.log(req.user.id);
+  console.log(req.user.username);
+  console.log(req.user.role);
+
   try {
     let allorders = await Orders.aggregate([
       {
-        $match: {},
+        $match: { userId: new mongoose.Types.ObjectId(req.user.id) },
       },
       {
         $project: { Order_Summary: 0 },
       },
       {
-        $sort:{OrderplacedDate:-1}
-      }
+        $sort: { OrderplacedDate: -1 },
+      },
     ])
       .skip(parseInt(offset))
       .limit(parseInt(limit));
 
+    if (allorders.length == 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        message: "No orders found",
+      });
+    }
+
     res.status(StatusCodes.OK).json(allorders);
   } catch (err) {
-
     console.log("error while getting all  the orders:", err);
     Sentry.captureException(err);
 
@@ -190,21 +211,21 @@ export const orderDetails = async (req, res) => {
   try {
     let allorders = await Orders.aggregate([
       {
-        $match: {},
+        $match: { userId: new mongoose.Types.ObjectId(req.user.id) },
+        //$match: { userId: req.user.id},
       },
       {
-        $project: { Order_Summary: 1 ,OrderplacedDate:1},
+        $project: { Order_Summary: 1, OrderplacedDate: 1 },
       },
       {
-        $sort:{OrderplacedDate:-1}
-      }
+        $sort: { OrderplacedDate: -1 },
+      },
     ])
       .skip(parseInt(offset))
       .limit(parseInt(limit));
 
     res.status(StatusCodes.OK).json(allorders);
   } catch (err) {
-
     consosle.log("server error while getting the order details:", err);
     Sentry.captureException(err);
 
@@ -221,7 +242,6 @@ export const myorders = async (req, res) => {
 
     res.status(StatusCodes.OK).json(orders);
   } catch (err) {
-
     console.log("error while getting all  the orders:", err);
     Sentry.captureException(err);
 
@@ -288,9 +308,7 @@ export const updatingbooking = async (req, res) => {
     await book.save();
 
     res.status(StatusCodes.OK).json(book);
-
   } catch (err) {
-
     console.log("server error while updating the order:", err);
     Sentry.captureException(err);
 
@@ -330,9 +348,7 @@ export const cancelorder = async (req, res) => {
     res
       .status(StatusCodes.OK)
       .json({ message: "Order cancelled successfully" });
-
   } catch (err) {
-
     console.log("server error while cancelling the booking");
     Sentry.captureException(err);
 
