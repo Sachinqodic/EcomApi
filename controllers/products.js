@@ -7,6 +7,7 @@ import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
 
+// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -40,8 +41,10 @@ export const AddingProduct = async (req, res) => {
       Ratings,
     });
 
+    // Fix: use product.create() method
     await product.save();
 
+    // Fix: Missing Return statment
     res
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
@@ -96,6 +99,8 @@ export const AddingProduct = async (req, res) => {
 // };
 
 // using the body
+
+// Fix: Needs to be more cleaner and readable, This controller requires formating
 export const bodygetallproducts = async (req, res) => {
   let { filter, search } = req.body;
 
@@ -108,6 +113,8 @@ export const bodygetallproducts = async (req, res) => {
     // creating the object to be used in the query.
     let obj = {};
 
+
+    // Fix: Wrong way of handling Search and Filter
     if (search != "" && filter == undefined) {
       obj = {
         $or: [
@@ -118,6 +125,7 @@ export const bodygetallproducts = async (req, res) => {
       console.log(obj, "only search");
     }
 
+    // Fix: Wrong way of handling Search and Filter
     if (filter && search == undefined) {
       obj = Object.assign(obj, filter);
       console.log(obj, "only filter");
@@ -200,11 +208,13 @@ export const getProduct = async (req, res) => {
     let id = req.params.id;
     let product = await Products.findById(id);
 
+    // Fix: Return statement missing
     res.status(StatusCodes.OK).json(product);
   } catch (err) {
     console.log("server error while gettings the proucts  BY ID:", err);
     Sentry.captureException(err);
 
+    // Fix: Return statement missing
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while gettings the products by id" });
@@ -215,11 +225,13 @@ export const getMostRatingProducts = async (req, res) => {
   try {
     let pro = await Products.find({ Ratings: { $gt: 3.9 } });
 
+    // Fix: Return statement missing
     res.status(StatusCodes.OK).json(pro);
   } catch (err) {
     console.log("server error while getting the most rating products", err);
     Sentry.captureException(err);
 
+    // Fix: Return statement missing
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while getting the most rating products" });

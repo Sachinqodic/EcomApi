@@ -8,6 +8,8 @@ import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
 import Logs from "../models/LoginLogoutDetails.js";
 
+
+// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -36,8 +38,11 @@ export const register = async (req, res) => {
       role,
     });
 
+    // Fix: use User.create() method .save() is older method and all the required fields should be validated before user creation
     await user.save();
 
+
+    // Fix: Missing Return statment
     res
       .status(StatusCodes.CREATED)
       .json({ message: "The endUser registered successfully" });
@@ -94,11 +99,13 @@ export const login = async (req, res) => {
 
     console.log("Sending login response with token:", token);
 
+    // Fix: Missing Return statment
     res.status(StatusCodes.OK).json({ token });
   } catch (err) {
     console.log("Server error while login", err);
     Sentry.captureException(err);
 
+    // Fix: Missing Return statment
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Server error while logging in" });
@@ -122,12 +129,12 @@ export const logout = async (req, res) => {
     userlogs.UserToken = null;
 
     await userlogs.save();
-
+    // Fix: Missing Return statment
     res.json({ message: "Logout successful" });
   } catch (err) {
     console.log("server error while logging out:", err);
     Sentry.captureException(err);
-
+    // Fix: Missing Return statment
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Server error while logging out" });
@@ -137,7 +144,7 @@ export const logout = async (req, res) => {
 export const allusers = async (req, res) => {
   try {
     let allusers = await UsersDetails.find({});
-
+    // Fix: Missing Return statment
     res.status(StatusCodes.OK).json(allusers);
   } catch (err) {
     console.log("error while getting all  the users:", err);

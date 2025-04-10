@@ -34,6 +34,8 @@ router.post("/book/:id", async (req, res) => {
   await booking(req, res);
 });
 
+
+// Fix: This route method is proper but there should be a common /route suffix for all the order's route which should be defined here
 router.post("/multipleProductsbooking", auth, multipleProductsbooking);
 
 router.get("/allorders", auth, getallorders);

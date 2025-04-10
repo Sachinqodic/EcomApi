@@ -8,6 +8,7 @@ import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
 import mongoose, { ObjectId } from "mongoose";
 
+// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
 const app = express();
 app.use(express.json());
 app.use(cors());

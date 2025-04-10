@@ -21,6 +21,7 @@ console.log("Mongo URI", process.env.MONGO_URL);
 Sentry.setupExpressErrorHandler(app);
 
 // Database connection
+// FIX: All the external connections including DB should be handled in a different file
 mongoose
   .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
@@ -34,6 +35,7 @@ mongoose
   });
 
 // Routes
+// Fix: All the routes should be defined in the Routes> index file and that index file should be imported here
 app.use("/auth", authRou);
 app.use("/product", eventRou);
 app.use("/booking", Booking);

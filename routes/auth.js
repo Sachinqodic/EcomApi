@@ -13,12 +13,25 @@ import {
   allusers,
 } from "../controllers/usersRegister.js";
 
+
+// Fix: Why is the express app initiated in all the files? It should be only in the express.js
 const app = express();
 
+// Fix: This should be in the app.js file
 app.use(express.json());
 
 const router = express.Router();
 
+
+// Fix: Router should only route from one handler to another, the logic and error handling should be done in Validators and Controllers
+/* 
+
+Reference route
+
+=> router.post('/register', requiredFieldsValidation, roleAuthentication, register)
+
+thats it, rest of the things should be han
+*/
 router.post("/register", (req, res) => {
   let { error: missingFieldsError } =
     userRegisterValidation.requiredFieldsValidation(req.body);
@@ -30,7 +43,9 @@ router.post("/register", (req, res) => {
     });
   }
 
+  // Fix: all the validations should be handled in registrationValidator, a single validator should handle validations for one route
   let { error: validationError } = userRegisterValidation.validate(req.body);
+
 
   if (validationError) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
@@ -82,6 +97,7 @@ router.post("/logout", async (req, res) => {
   await logout(req, res);
 });
 
+// Fix: There are should be Admin Auth For this Route
 router.get("/allusers", allusers);
 
 export default router;

@@ -9,6 +9,7 @@ import {
   userConfirmation,
 } from "../controllers/payment.js";
 
+// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
 const app = express();
 app.use(express());
 app.use(cors());
