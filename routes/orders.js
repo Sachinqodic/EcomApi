@@ -1,7 +1,7 @@
 import cors from "cors";
 import express from "express";
 import auth from "../middleware/authmiddle.js";
-import { UeventbookValidation } from "../validators/booking.js";
+import bookingValidation from "../validators/booking.js";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import {
   myorders,
@@ -19,23 +19,8 @@ app.use(cors());
 
 const router = express.Router();
 
-router.post("/book/:id", async (req, res) => {
-  let { error: NoSeatsError } =
-    UeventbookValidation.userNoOfSeatsValidation.validate(req.body);
+router.post("/book/:id", bookingValidation, auth, booking);
 
-  if (NoSeatsError) {
-    return res.status(StatusCodes.METHOD_NOT_ALLOWED).json({
-      error: ReasonPhrases.BAD_REQUEST,
-      message: "validation error while booking the product",
-    });
-  }
-
-  await auth(req, res);
-  await booking(req, res);
-});
-
-
-// Fix: This route method is proper but there should be a common /route suffix for all the order's route which should be defined here
 router.post("/multipleProductsbooking", auth, multipleProductsbooking);
 
 router.get("/allorders", auth, getallorders);

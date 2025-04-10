@@ -1,15 +1,18 @@
-import express from "express";
 import joi from "joi";
-
-// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
-const app = express();
-app.use(express.json());
+import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
 const userNoOfSeatsValidation = joi.object({
   NoOfItems: joi.number().min(1).required().strict(),
-
 });
 
-export const UeventbookValidation = {
-  userNoOfSeatsValidation,
+export default (req, res, next) => {
+  let { error: NoSeatsError } = userNoOfSeatsValidation.validate(req.body);
+
+  if (NoSeatsError) {
+    return res.status(StatusCodes.METHOD_NOT_ALLOWED).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: "validation error while booking the product",
+    });
+  }
+  next();
 };

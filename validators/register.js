@@ -1,8 +1,5 @@
-import express from "express";
 import joi from "joi";
-
-const app = express();
-app.use(express.json());
+import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
 const userRegisterValidation = joi.object({
   username: joi.string().alphanum().min(3).max(15).required().trim(),
@@ -42,4 +39,26 @@ userRegisterValidation.requiredFieldsValidation = (data) => {
   return { error: null };
 };
 
-export default userRegisterValidation;
+export default async (req, res, next) => {
+  let { error: missingFieldsError } =
+    userRegisterValidation.requiredFieldsValidation(req.body);
+
+  if (missingFieldsError) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: "Missing required fields in the body for registartion",
+    });
+  }
+
+  // Fix: all the validations should be handled in registrationValidator, a single validator should handle validations for one route
+  let { error: validationError } = userRegisterValidation.validate(req.body);
+
+  if (validationError) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: "Invalid fields in the body for registartion",
+    });
+  }
+
+  next();
+};

@@ -1,17 +1,10 @@
 import "../instrument.js";
 import * as Sentry from "@sentry/node";
-import cors from "cors";
-import express from "express";
 import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
 import mongoose, { ObjectId } from "mongoose";
-
-// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
-const app = express();
-app.use(express.json());
-app.use(cors());
 
 // single product booking
 export const booking = async (req, res) => {
@@ -50,7 +43,7 @@ export const booking = async (req, res) => {
 
     console.log({ userId, OrderedBy, ProductId, productName, price, bill });
 
-    let order = new Orders({
+    let order = await Orders.create({
       userId,
       OrderedBy,
       ProductId,
@@ -61,7 +54,8 @@ export const booking = async (req, res) => {
       category,
     });
 
-    await order.save();
+    console.log(order.ProductName);
+    //await order.save();
 
     const productInfo = await Products.findById(req.params.id);
 
@@ -85,7 +79,7 @@ export const booking = async (req, res) => {
 
     console.log("The product added successfully:", productInfo);
 
-    res
+    return res
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
   } catch (err) {
@@ -128,7 +122,7 @@ export const multipleProductsbooking = async (req, res) => {
       Order_Summary.push({ productid, productName, Quantity, price, Total });
     }
 
-    let order = new Orders({
+    let order = await Orders.create({
       userId,
       OrderedBy,
       ProductsIdList,
@@ -136,7 +130,7 @@ export const multipleProductsbooking = async (req, res) => {
       Order_Summary,
     });
 
-    await order.save();
+    //await order.save();
     console.log(order);
 
     booking.forEach(demo);
@@ -194,7 +188,7 @@ export const getallorders = async (req, res) => {
       });
     }
 
-    res.status(StatusCodes.OK).json(allorders);
+    return res.status(StatusCodes.OK).json(allorders);
   } catch (err) {
     console.log("error while getting all  the orders:", err);
     Sentry.captureException(err);
@@ -225,7 +219,7 @@ export const orderDetails = async (req, res) => {
       .skip(parseInt(offset))
       .limit(parseInt(limit));
 
-    res.status(StatusCodes.OK).json(allorders);
+    return res.status(StatusCodes.OK).json(allorders);
   } catch (err) {
     consosle.log("server error while getting the order details:", err);
     Sentry.captureException(err);
@@ -241,7 +235,7 @@ export const myorders = async (req, res) => {
     let id = req.params.id;
     let orders = await Orders.findById(id);
 
-    res.status(StatusCodes.OK).json(orders);
+    return res.status(StatusCodes.OK).json(orders);
   } catch (err) {
     console.log("error while getting all  the orders:", err);
     Sentry.captureException(err);
@@ -308,7 +302,7 @@ export const updatingbooking = async (req, res) => {
     await productInfoUpdation.save();
     await book.save();
 
-    res.status(StatusCodes.OK).json(book);
+    return res.status(StatusCodes.OK).json(book);
   } catch (err) {
     console.log("server error while updating the order:", err);
     Sentry.captureException(err);
@@ -346,14 +340,14 @@ export const cancelorder = async (req, res) => {
       products.quantityAvailable + NoOfItemsForBooked;
 
     await products.save();
-    res
+    return res
       .status(StatusCodes.OK)
       .json({ message: "Order cancelled successfully" });
   } catch (err) {
     console.log("server error while cancelling the booking");
     Sentry.captureException(err);
 
-    res
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server Error while canceling the orders" });
   }

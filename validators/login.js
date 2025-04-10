@@ -1,8 +1,5 @@
-import express from "express";
 import joi from "joi";
-
-const app = express();
-app.use(express.json());
+import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
 const userLoginvalidation = joi.object({
   username: joi.string().alphanum().min(3).max(15).required().trim(),
@@ -29,4 +26,25 @@ userLoginvalidation.requiredFieldsValidation = (data) => {
   return { error: null };
 };
 
-export default userLoginvalidation;
+export default (req, res, next) => {
+  let { error: missingFieldsError } =
+    userLoginvalidation.requiredFieldsValidation(req.body);
+
+  if (missingFieldsError) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: "Missing required fields in the body for login",
+    });
+  }
+
+  let { error: validationError } = userLoginvalidation.validate(req.body);
+
+  if (validationError) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: "Invalid fields in the body for login",
+    });
+  }
+
+  next();
+};

@@ -1,12 +1,6 @@
 import "../instrument.js";
 import * as Sentry from "@sentry/node";
-import cors from "cors";
-import express from "express";
 import { StatusCodes } from "http-status-codes";
-
-const app = express();
-app.use(express.json());
-app.use(cors());
 
 export default async (req, res, next) => {
   try {

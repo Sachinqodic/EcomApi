@@ -1,16 +1,9 @@
 import "../instrument.js";
 import * as Sentry from "@sentry/node";
-import cors from "cors";
-import express from "express";
 import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
-
-// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
-const app = express();
-app.use(express.json());
-app.use(cors());
 
 console.log("Starting authopera.js...");
 
@@ -30,7 +23,7 @@ export const AddingProduct = async (req, res) => {
   } = req.body;
 
   try {
-    let product = new Products({
+    let product = await Products.create({
       productName,
       productDescription,
       price,
@@ -41,11 +34,9 @@ export const AddingProduct = async (req, res) => {
       Ratings,
     });
 
-    // Fix: use product.create() method
-    await product.save();
+    console.log(product);
 
-    // Fix: Missing Return statment
-    res
+    return res
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
   } catch (err) {
@@ -113,34 +104,48 @@ export const bodygetallproducts = async (req, res) => {
     // creating the object to be used in the query.
     let obj = {};
 
-
     // Fix: Wrong way of handling Search and Filter
-    if (search != "" && filter == undefined) {
-      obj = {
-        $or: [
-          { productName: { $regex: `${search}`, $options: "i" } },
-          { category: { $regex: `${search}`, $options: "i" } },
-        ],
-      };
-      console.log(obj, "only search");
-    }
-
-    // Fix: Wrong way of handling Search and Filter
-    if (filter && search == undefined) {
-      obj = Object.assign(obj, filter);
-      console.log(obj, "only filter");
-    } else if (search && filter) {
-      obj = {
-        $or: [
-          { productName: { $regex: `${search}`, $options: "i" } },
-          { category: { $regex: `${search}`, $options: "i" } },
-        ],
-      };
-      obj = Object.assign(obj, filter);
-      console.log(obj, "both search and filter");
-    }
+    // if (search != "" && filter == undefined) {
+    //   obj = {
+    //     $or: [
+    //       { productName: { $regex: `${search}`, $options: "i" } },
+    //       { category: { $regex: `${search}`, $options: "i" } },
+    //     ],
+    //   };
+    //   console.log(obj, "only search");
+    // }
+    // // Fix: Wrong way of handling Search and Filter
+    // if (filter && search == undefined) {
+    //   obj = Object.assign(obj, filter);
+    //   console.log(obj, "only filter");
+    // } else if (search && filter) {
+    //   obj = {
+    //     $or: [
+    //       { productName: { $regex: `${search}`, $options: "i" } },
+    //       { category: { $regex: `${search}`, $options: "i" } },
+    //     ],
+    //   };
+    //   obj = Object.assign(obj, filter);
+    //   console.log(obj, "both search and filter");
+    // }
 
     //  query to get the products.
+
+    if (search) {
+      console.log("in side the search field");
+      obj.$or = [
+        { productName: { $regex: `${search}`, $options: "i" } },
+        { category: { $regex: `${search}`, $options: "i" } },
+      ];
+      console.log({ ...obj }, "object along the with the spread operator");
+    }
+
+    if (filter) {
+      console.log({ ...filter });
+      console.log("in side the filter field");
+      obj = { ...obj, ...filter };
+    }
+
     let data1 = await Products.aggregate([
       { $match: obj },
 
@@ -208,14 +213,12 @@ export const getProduct = async (req, res) => {
     let id = req.params.id;
     let product = await Products.findById(id);
 
-    // Fix: Return statement missing
-    res.status(StatusCodes.OK).json(product);
+    return res.status(StatusCodes.OK).json(product);
   } catch (err) {
     console.log("server error while gettings the proucts  BY ID:", err);
     Sentry.captureException(err);
 
-    // Fix: Return statement missing
-    res
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while gettings the products by id" });
   }
@@ -225,14 +228,12 @@ export const getMostRatingProducts = async (req, res) => {
   try {
     let pro = await Products.find({ Ratings: { $gt: 3.9 } });
 
-    // Fix: Return statement missing
-    res.status(StatusCodes.OK).json(pro);
+    return res.status(StatusCodes.OK).json(pro);
   } catch (err) {
     console.log("server error while getting the most rating products", err);
     Sentry.captureException(err);
 
-    // Fix: Return statement missing
-    res
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "server error while getting the most rating products" });
   }

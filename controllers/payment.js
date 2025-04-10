@@ -1,17 +1,8 @@
 import "../instrument.js";
 import * as Sentry from "@sentry/node";
-import cors from "cors";
-import express from "express";
 import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
-import UsersDetails from "../models/UsersDetails.js";
-
-
-// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
-const app = express();
-app.use(express.json());
-app.use(cors());
 
 export const payment = async (req, res) => {
   let { id } = req.params;
@@ -75,7 +66,7 @@ export const getallPaidOrders = async (req, res) => {
       .skip(parseInt(offset))
       .limit(parseInt(limit));
 
-    res.status(StatusCodes.OK).json(paidOrders);
+    return res.status(StatusCodes.OK).json(paidOrders);
   } catch (err) {
     console.log("server error while getting the paid orders", err);
     Sentry.captureException(err);

@@ -18,6 +18,3 @@ export const roleAuthentication = (req, res, next) => {
   next();
   console.log("role outs side");
 };
-
-// Fix: This should be Admin Auth Validator 
-// Constants are just Array of Contants or variables that are commonly used in the Code

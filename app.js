@@ -4,12 +4,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-import authRou from "./routes/auth.js";
-import Booking from "./routes/orders.js";
-import eventRou from "./routes/productsadding.js";
-import payment from "./routes/payments.js";
+// import authRou from "./routes/auth.js";
+// import Booking from "./routes/orders.js";
+// import eventRou from "./routes/productsadding.js";
+// import payment from "./routes/payments.js";
+import routes from "./routes/index.js";
 import { StatusCodes } from "http-status-codes";
-
+import { connectDB } from "./utils/dbConnection.js";
 dotenv.config();
 
 const app = express();
@@ -20,31 +21,20 @@ console.log("Mongo URI", process.env.MONGO_URL);
 //sentry set up
 Sentry.setupExpressErrorHandler(app);
 
-// Database connection
-// FIX: All the external connections including DB should be handled in a different file
-mongoose
-  .connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    maxPoolSize: 5000,
-  })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    Sentry.captureException(err);
-  });
+//db connection
+connectDB();
 
-// Routes
-// Fix: All the routes should be defined in the Routes> index file and that index file should be imported here
-app.use("/auth", authRou);
-app.use("/product", eventRou);
-app.use("/booking", Booking);
-app.use("/payment", payment);
+app.use("/", routes);
+
+// app.use("/auth", authRou);
+// app.use("/product", eventRou);
+// app.use("/booking", Booking);
+// app.use("/payment", payment);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res
+  return res
     .status(StatusCodes.INTERNAL_SERVER_ERROR)
     .json({ error: "Internal Server Error" });
 });

@@ -1,8 +1,5 @@
-import express from "express";
 import joi from "joi";
-
-const app = express();
-app.use(express.json());
+import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
 const userLogoutValidation = joi.object({
   authorization: joi
@@ -15,4 +12,17 @@ const userLogoutValidation = joi.object({
     .trim(),
 });
 
-export default userLogoutValidation;
+export default (req, res, next) => {
+  let { error } = userLogoutValidation.validate({
+    authorization: req.headers["authorization"],
+  });
+
+  if (error) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: "Invalid fields in the body for logout",
+    });
+  }
+
+  next();
+};

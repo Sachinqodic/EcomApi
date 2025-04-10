@@ -1,10 +1,10 @@
 import express from "express";
 import auth from "../middleware/authmiddle.js";
-import { roleAuthentication } from "../constants/enums.js";
-import userLoginvalidation from "../validators/login.js";
-import userLogoutValidation from "../validators/logout.js";
-import userRegisterValidation from "../validators/register.js";
-import { ReasonPhrases, StatusCodes } from "http-status-codes";
+import { roleAuthentication } from "../middleware/registerrole.js";
+import registervalidation from "../validators/register.js";
+import loginValidation from "../validators/login.js";
+import logoutValidation from "../validators/logout.js";
+import Role from "../middleware/adminRole.js";
 
 import {
   register,
@@ -13,91 +13,14 @@ import {
   allusers,
 } from "../controllers/usersRegister.js";
 
-
-// Fix: Why is the express app initiated in all the files? It should be only in the express.js
-const app = express();
-
-// Fix: This should be in the app.js file
-app.use(express.json());
-
 const router = express.Router();
 
+router.post("/register", registervalidation, roleAuthentication, register);
 
-// Fix: Router should only route from one handler to another, the logic and error handling should be done in Validators and Controllers
-/* 
+router.post("/login", loginValidation, login);
 
-Reference route
+router.post("/logout", logoutValidation, auth, logout);
 
-=> router.post('/register', requiredFieldsValidation, roleAuthentication, register)
-
-thats it, rest of the things should be han
-*/
-router.post("/register", (req, res) => {
-  let { error: missingFieldsError } =
-    userRegisterValidation.requiredFieldsValidation(req.body);
-
-  if (missingFieldsError) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      error: ReasonPhrases.BAD_REQUEST,
-      message: "Missing required fields in the body for registartion",
-    });
-  }
-
-  // Fix: all the validations should be handled in registrationValidator, a single validator should handle validations for one route
-  let { error: validationError } = userRegisterValidation.validate(req.body);
-
-
-  if (validationError) {
-    return res.status(StatusCodes.UNAUTHORIZED).json({
-      error: ReasonPhrases.BAD_REQUEST,
-      message: "Invalid fields in the body for registartion",
-    });
-  }
-
-  roleAuthentication, register(req, res);
-});
-
-router.post("/login", async (req, res) => {
-  let { error: missingFieldsError } =
-    userLoginvalidation.requiredFieldsValidation(req.body);
-
-  if (missingFieldsError) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      error: ReasonPhrases.BAD_REQUEST,
-      message: "Missing required fields in the body for login",
-    });
-  }
-
-  let { error: validationError } = userLoginvalidation.validate(req.body);
-
-  if (validationError) {
-    return res.status(StatusCodes.UNAUTHORIZED).json({
-      error: ReasonPhrases.BAD_REQUEST,
-      message: "Invalid fields in the body for login",
-    });
-  }
-
-  await login(req, res);
-});
-
-router.post("/logout", async (req, res) => {
-  let { error } = userLogoutValidation.validate({
-    authorization: req.headers["authorization"],
-  });
-
-  if (error) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      error: ReasonPhrases.BAD_REQUEST,
-      message: "Invalid fields in the body for logout",
-    });
-  }
-
-  await auth(req, res);
-
-  await logout(req, res);
-});
-
-// Fix: There are should be Admin Auth For this Route
-router.get("/allusers", allusers);
+router.get("/allusers", Role, allusers); //Admin route
 
 export default router;

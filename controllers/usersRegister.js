@@ -1,18 +1,11 @@
 import "../instrument.js";
 import * as Sentry from "@sentry/node";
-import cors from "cors";
-import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
 import Logs from "../models/LoginLogoutDetails.js";
 
-
-// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
-const app = express();
-app.use(express.json());
-app.use(cors());
 
 console.log("Starting authopera.js...");
 
@@ -28,7 +21,7 @@ export const register = async (req, res) => {
         .json({ error: "User already exists" });
     }
 
-    let user = new UsersDetails({
+    let user = await UsersDetails.create({
       username,
       age,
       email,
@@ -38,15 +31,15 @@ export const register = async (req, res) => {
       role,
     });
 
-    // Fix: use User.create() method .save() is older method and all the required fields should be validated before user creation
-    await user.save();
+    console.log(user.username, "user is created");
 
 
-    // Fix: Missing Return statment
-    res
+    return res
       .status(StatusCodes.CREATED)
       .json({ message: "The endUser registered successfully" });
+
   } catch (err) {
+
     console.error("Error creating user:", err);
     Sentry.captureException(err);
 
@@ -99,20 +92,23 @@ export const login = async (req, res) => {
 
     console.log("Sending login response with token:", token);
 
-    // Fix: Missing Return statment
-    res.status(StatusCodes.OK).json({ token });
+
+    return res.status(StatusCodes.OK).json({ token });
+
   } catch (err) {
+
     console.log("Server error while login", err);
     Sentry.captureException(err);
 
-    // Fix: Missing Return statment
-    res
+
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Server error while logging in" });
   }
 };
 
 export const logout = async (req, res) => {
+
   try {
     let authHeader = req.headers["authorization"];
     let token = authHeader && authHeader.split(" ")[1];
@@ -129,13 +125,13 @@ export const logout = async (req, res) => {
     userlogs.UserToken = null;
 
     await userlogs.save();
-    // Fix: Missing Return statment
-    res.json({ message: "Logout successful" });
+
+    return res.json({ message: "Logout successful" });
   } catch (err) {
     console.log("server error while logging out:", err);
     Sentry.captureException(err);
-    // Fix: Missing Return statment
-    res
+
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Server error while logging out" });
   }
@@ -144,8 +140,8 @@ export const logout = async (req, res) => {
 export const allusers = async (req, res) => {
   try {
     let allusers = await UsersDetails.find({});
-    // Fix: Missing Return statment
-    res.status(StatusCodes.OK).json(allusers);
+
+    return res.status(StatusCodes.OK).json(allusers);
   } catch (err) {
     console.log("error while getting all  the users:", err);
     Sentry.captureException(err);

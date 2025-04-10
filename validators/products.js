@@ -1,10 +1,7 @@
-import express from "express";
 import joi from "joi";
+import { StatusCodes, ReasonPhrases } from "http-status-codes";
 
-const app = express();
-app.use(express.json());
-
-const EMcreateEventValidation = joi.object({
+const productValidation = joi.object({
   productName: joi.string().required().trim(),
   productDescription: joi.string().required().trim(),
 
@@ -18,7 +15,7 @@ const EMcreateEventValidation = joi.object({
   category: joi.string().required().trim(),
 });
 
-EMcreateEventValidation.requiredFieldsValidation = (data) => {
+productValidation.requiredFieldsValidation = (data) => {
   const requiredFields = [
     "productName",
     "productDescription",
@@ -42,4 +39,24 @@ EMcreateEventValidation.requiredFieldsValidation = (data) => {
   return { error: null };
 };
 
-export default EMcreateEventValidation;
+export default (req, res, next) => {
+  let { error: missingFieldsError } =
+    productValidation.requiredFieldsValidation(req.body);
+
+  if (missingFieldsError) {
+    return res.status(StatusCodes.FORBIDDEN).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: "Missing required fields in the body while adding the products",
+    });
+  }
+
+  let { error: validateError } = productValidation.validate(req.body);
+
+  if (validateError) {
+    return res.status(StatusCodes.NOT_FOUND).json({
+      error: ReasonPhrases.BAD_REQUEST,
+      message: "Invalid fields in the body while adding the products",
+    });
+  }
+  next();
+};

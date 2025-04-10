@@ -1,15 +1,8 @@
 import "../instrument.js";
 import * as Sentry from "@sentry/node";
-import cors from "cors";
-import express from "express";
 import jwt from "jsonwebtoken";
 import Logs from "../models/LoginLogoutDetails.js";
 import { StatusCodes } from "http-status-codes";
-
-// Fix: Why is the app re-inititated here, it is already done in the app.js file? What is the usecase?
-const app = express();
-app.use(express.json());
-app.use(cors());
 
 export default async (req, res, next) => {
   let authHeader = req.headers["authorization"];
