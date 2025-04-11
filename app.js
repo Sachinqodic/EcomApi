@@ -4,10 +4,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-// import authRou from "./routes/auth.js";
-// import Booking from "./routes/orders.js";
-// import eventRou from "./routes/productsadding.js";
-// import payment from "./routes/payments.js";
 import routes from "./routes/index.js";
 import { StatusCodes } from "http-status-codes";
 import { connectDB } from "./utils/dbConnection.js";
@@ -25,11 +21,6 @@ Sentry.setupExpressErrorHandler(app);
 connectDB();
 
 app.use("/", routes);
-
-// app.use("/auth", authRou);
-// app.use("/product", eventRou);
-// app.use("/booking", Booking);
-// app.use("/payment", payment);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

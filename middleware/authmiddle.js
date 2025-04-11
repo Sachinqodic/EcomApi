@@ -12,11 +12,28 @@ export default async (req, res, next) => {
     return res.status(401).json({ error: "No token provided" });
   }
 
-  try {
-    // Verify the JWT token
-    let decoded = jwt.verify(token, process.env.SEC);
-    let userId = decoded.id;
 
+  console.log(token)
+  try {
+
+    let decoded;        
+    let userId;
+    try{
+      
+      // Verify the JWT token
+    decoded = jwt.verify(token, process.env.SEC); // if token is not verified properly then it will throw an error
+    userId = decoded.id;
+
+    }
+
+    catch(err){
+
+      return res
+      .status(StatusCodes.NOT_ACCEPTABLE)
+      .json({ error: "invalid token from the middlware @@ here " });
+
+    }
+    
     // Check if the user has an active session in the Logs model
     const userLogs = await Logs.findOne({ UserId: userId });
 
@@ -34,6 +51,7 @@ export default async (req, res, next) => {
 
     return res
       .status(StatusCodes.UNAUTHORIZED)
-      .json({ error: "Invalid token" });
+      .json({ error: "server error in the auth middleware" });
   }
 };
+

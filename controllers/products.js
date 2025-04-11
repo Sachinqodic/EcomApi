@@ -1,13 +1,22 @@
 import "../instrument.js";
 import * as Sentry from "@sentry/node";
+import mongoose from "mongoose";
 import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
 
-console.log("Starting authopera.js...");
+
+
+
+
 
 export const AddingProduct = async (req, res) => {
+
+  // starting the session management nad transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   let user = await UsersDetails.findById(req.user.id);
   console.log("user info who adding the product:", user);
 
@@ -36,9 +45,17 @@ export const AddingProduct = async (req, res) => {
 
     console.log(product);
 
+    // await session.commitTransaction();
+    // await session.endSession();
+
+
+    req.session=session;
+
     return res
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
+
+      
   } catch (err) {
     console.error("Error adding the product:", err);
     Sentry.captureException(err);
@@ -93,7 +110,7 @@ export const AddingProduct = async (req, res) => {
 
 // Fix: Needs to be more cleaner and readable, This controller requires formating
 export const bodygetallproducts = async (req, res) => {
-  let { filter, search } = req.body;
+  const  { filter, search } = req.body;
 
   // pagination
   let { page, limit } = req.query;
@@ -143,6 +160,7 @@ export const bodygetallproducts = async (req, res) => {
     if (filter) {
       console.log({ ...filter });
       console.log("in side the filter field");
+      
       obj = { ...obj, ...filter };
     }
 

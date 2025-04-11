@@ -42,10 +42,12 @@ const productSchema = new mongoose.Schema({
   },
 });
 
-productSchema.index({ category: 1, price: 1, productName: 1 });
+
 
 productSchema.index({ price: 1, productName: 1 });
 
 productSchema.index({ productName: 1, category: 1, price: 1 });
+
+productSchema.index({ category: 1, price: 1 });
 
 export default mongoose.model("Products", productSchema);

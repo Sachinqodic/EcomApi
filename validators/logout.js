@@ -12,7 +12,7 @@ const userLogoutValidation = joi.object({
     .trim(),
 });
 
-export default (req, res, next) => {
+export const logoutValidator = (req, res, next) => {
   let { error } = userLogoutValidation.validate({
     authorization: req.headers["authorization"],
   });
@@ -20,7 +20,7 @@ export default (req, res, next) => {
   if (error) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       error: ReasonPhrases.BAD_REQUEST,
-      message: "Invalid fields in the body for logout",
+      message: "Invalid token missing in the header or invalid token while logout",
     });
   }
 
