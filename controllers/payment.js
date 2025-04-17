@@ -1,8 +1,16 @@
 import "../instrument.js";
 import * as Sentry from "@sentry/node";
+import dotenv from "dotenv";
 import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
+import Stripe from "stripe";
+
+dotenv.config();
+const stripe = new Stripe(process.env.SECRET_KEY);
+
+
+
 
 export const payment = async (req, res) => {
   let { id } = req.params;

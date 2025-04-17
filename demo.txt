@@ -1,0 +1,275 @@
+
+netstat -ano | findstr :27022
+
+
+
+mkdir C:\mongo-replica\rs1\data
+mkdir C:\mongo-replica\rs2\data
+mkdir C:\mongo-replica\rs3\data
+
+
+
+
+
+C:\Program Files\MongoDB\Server\8.0\bin
+
+mongosh --port 27018
+
+mongosh --port 27019
+
+mongosh --port 27020
+
+
+
+start "" mongod --replSet sachinReplica --logpath "C:\mongo-replica\rs1\1.log" --dbpath "C:\mongo-replica\rs1\data" --port 27018 --bind_ip localhost
+
+start "" mongod --replSet sachinReplica --logpath "C:\mongo-replica\rs2\2.log" --dbpath "C:\mongo-replica\rs2\data" --port 27019 --bind_ip localhost
+
+start "" mongod --replSet sachinReplica --logpath "C:\mongo-replica\rs3\3.log" --dbpath "C:\mongo-replica\rs3\data" --port 27020 --bind_ip localhost
+
+
+
+rs.initiate({
+  _id: "sachinReplica",
+  members: [
+    { _id: 0, host: "localhost:27018" },
+    { _id: 1, host: "localhost:27019" },
+    { _id: 2, host: "localhost:27020" }
+  ]
+})
+
+
+show dbs
+use admin
+db.shutdownServer();
+
+mkdir C:\mongo-replica\rs4\data
+
+cd C:\Program Files\MongoDB\Server\8.0\bin
+
+start "" mongod --replSet sachinReplica --logpath "C:\mongo-replica\rs4\4.log" --dbpath "C:\mongo-replica\rs4\data" --port 27021 --bind_ip localhost
+
+.> next go to the primary running server , in this tab only or else where it is running 
+
+rs.add("localhost:27021");
+
+
+
+
+
+adding the  arbitery  using the rs.addArb():
+
+
+mkdir C:\mongo-replica\arbiter\data
+
+cd C:\Program Files\MongoDB\Server\8.0\bin
+execute the belowe command
+start "" mongod --replSet sachinReplica --logpath "C:\mongo-replica\arbiter\arbiter.log" --dbpath "C:\mongo-replica\arbiter\data" --port 27022 --bind_ip localhost
+
+open a new terminal :
+mongosh --port 27022
+
+
+go where the primary is openeD:
+
+rs.addArb("localhost:27022")
+
+rs.config();
+
+rs.status(); // for checking purpose 
+
+
+
+
+
+====================================================================================== >
+=-============================================================================================================= >
+
+
+SHARDING 
+
+
+sharding demo :
+
+@@ step-1:
+================= >
+
+.> replica set configuration for the config server
+
+mkdir C:\Sharding_mongo-replica\rs1\data
+mkdir C:\Sharding_mongo-replica\rs2\data
+mkdir C:\Sharding_mongo-replica\rs3\data
+
+cd C:\Program Files\MongoDB\Server\8.0\bin
+
+start "" mongod --configsvr --replSet ShardingConfigReplica1 --logpath "C:\Sharding_mongo-replica\rs1\1.log" --dbpath "C:\Sharding_mongo-replica\rs1\data" --port 2001 --bind_ip localhost
+
+
+start "" mongod --configsvr --replSet ShardingConfigReplica1 --logpath "C:\Sharding_mongo-replica\rs2\2.log" --dbpath "C:\Sharding_mongo-replica\rs2\data" --port 2002 --bind_ip localhost
+
+
+start "" mongod --configsvr --replSet ShardingConfigReplica1 --logpath "C:\Sharding_mongo-replica\rs3\3.log" --dbpath "C:\Sharding_mongo-replica\rs3\data" --port 2003 --bind_ip localhost
+
+
+mongosh --port 2001
+
+mongosh --port 2002
+
+mongosh --port 2003
+
+
+
+
+
+rs.initiate({
+  _id: "ShardingConfigReplica1",
+  members: [
+    { _id: 0, host: "localhost:2001" },
+    { _id: 1, host: "localhost:2002" },
+    { _id: 2, host: "localhost:2003" }
+  ]
+})
+
+
+rs.status();
+
+
+
+
+@@ step-2:
+================= >
+
+open a new terminal :
+
+
+@ creating the shard configuration :
+
+
+.> create two folders in c:\data]shard
+
+mkdir C:\data\shard\s0\log
+
+mkdir C:\data\shard\s1\log
+
+
+cd C:\Program Files\MongoDB\Server\8.0\bin
+run all these in same termical 
+
+start "" mongod --shardsvr --port 2005 --bind_ip localhost --logpath "C:\data\shard\s0\log\s0.log" --dbpath "C:\data\shard\s0"
+
+start "" mongod --shardsvr --port 2006 --bind_ip localhost --logpath "C:\data\shard\s1\log\s1.log" --dbpath "C:\data\shard\s1" 
+
+
+if i try to run any of the above commands iam getting this error meessage here :
+
+start "" mongod --shardsvr --replSet ShardReplicaSet0 --port 2005 --bind_ip localhost --logpath "C:\data\shard\s0\log\s0.log" --dbpath "C:\data\shard\s0"
+
+start "" mongod --shardsvr --replSet ShardReplicaSet1 --port 2006 --bind_ip localhost --logpath "C:\data\shard\s1\log\s1.log" --dbpath "C:\data\shard\s1"
+
+
+
+netstat -ano | findstr :2005
+
+mongosh --port 2005
+
+rs.initiate({
+  _id: "ShardReplicaSet0",
+  members: [
+    { _id: 0, host: "localhost:2005" }
+  ]
+})
+
+mongosh --port 2006
+
+rs.initiate({
+  _id: "ShardReplicaSet1",
+  members: [
+    { _id: 0, host: "localhost:2006" }
+  ]
+})
+
+
+
+
+
+C:\Program Files\MongoDB\Server\8.0\bin>mongod --shardsvr --port 2006 --bind_ip localhost --logpath "C:\data\shard\s1\log\s1.log" --dbpath "C:\data\shard\s1\data"
+BadValue: Cannot start a shardsvr as a standalone server. Please use the option --replSet to start the node as a replica set.
+try 'mongod --help' for more information
+
+start "" mongod --configsvr --replSet ShardingConfigReplica1 --logpath "C:\Sharding_mongo-replica\rs3\3.log" --dbpath "C:\Sharding_mongo-replica\rs3\data" --port 2003 --bind_ip localhost
+
+
+@ Fpr starting the a routing Service:
+
+start "" mongos --port 2007 --configdb ShardingConfigReplica1/localhost:2001
+
+run this in same terminal
+mongosh --port 2007
+
+
+
+@@ step-3:
+================= >
+
+
+sh.addShard("localhost:2005");
+
+sh.addShard("localhost:2006");
+
+i have done this below commands 
+sh.addShard("ShardReplicaSet0/localhost:2005");
+sh.addShard("ShardReplicaSet1/localhost:2006");
+
+next whemn i used the :
+show dbs :
+config
+admin
+i got 
+so next can i do this, like  ? diretly with out having the vjit data base in the really here becaus ei only have the admin , config dbs only .
+is this accetable only 
+sh.enableSharding("vjit");
+
+sh.shardCollection("vjit.employee", { emp_id: 1 });
+
+
+after this i want to add the data in ot this is thsi accestable only 
+
+for (i=1;i<10000;i++){
+    db.employee.insert({emp_id:i,type:"fulltime"});
+
+}
+
+
+
+
+sh.enableSharding("yourDatabaseName");
+
+
+sh.shardCollection("yourDatabaseName.products", { emp_id: 1 });
+
+
+show dbs
+use particular db,
+
+show collections
+
+// if this is the new empty collection, then it will automatically create the index , 
+
+for (i=1;i<10000;i++){
+    db.employee.insert({emp_id:i,type:"fulltime"});
+
+}
+
+
+// to know wheather, the sharding happened or not we need to use this :
+
+ db.employee.getShardDistribustion();
+
+sh.status() 
+db.getCollection('yourCollection').getShardDistribution()
+
+
+To check wheather the index is created or not :
+.> db.employee.getIndexes();
+
+db.getCollection('employee').getShardDistribution()
