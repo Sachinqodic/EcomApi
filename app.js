@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
+import bodyParser from "body-parser";
 import routes from "./routes/index.js";
 import { StatusCodes } from "http-status-codes";
 import { connectDB } from "./utils/dbConnection.js";
@@ -12,6 +13,9 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 console.log("Mongo URI", process.env.MONGO_URL);
 
 //sentry set up
