@@ -5,6 +5,8 @@ import { StatusCodes } from "http-status-codes";
 export default async (req, res, next) => {
   try {
     let UserRole = req.user.role;
+    
+    console.log("UserRole", UserRole);
 
     console.log(UserRole);
 

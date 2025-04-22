@@ -5,6 +5,7 @@ import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
 import Stripe from "stripe";
+import redisClient from "../redis/redisClient.js";
 import { cancelorder } from "./bookings.js";
 
 dotenv.config();
@@ -260,7 +261,24 @@ export const getallPaidOrders = async (req, res) => {
   let { page, limit } = req.query;
   let offset = (page - 1) * limit;
 
+  //const rediskey='demo';
+  const rediskey = `paidOrders_${page}_${limit}`;
+
+
+
+
   try {
+
+
+    let cachedData=await redisClient.get(rediskey);
+
+    if(cachedData){
+      console.log("cache hit",cachedData);
+      return res.status(StatusCodes.OK).json(JSON.parse(cachedData));
+    };
+
+
+
     let paidOrders = await Orders.aggregate([
       { $match: { PaymentStatus: "Paid", ShipmentStatus: "confirmed" } },
 
@@ -268,6 +286,10 @@ export const getallPaidOrders = async (req, res) => {
     ])
       .skip(parseInt(offset))
       .limit(parseInt(limit));
+
+      await redisClient.set(rediskey,JSON.stringify(paidOrders),{
+        EX:60
+      });
 
     return res.status(StatusCodes.OK).json(paidOrders);
   } catch (err) {

@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
 import Logs from "../models/LoginLogoutDetails.js";
-
+import redisClient from "../redis/redisClient.js";
 
 console.log("Starting authopera.js...");
 
@@ -33,13 +33,10 @@ export const register = async (req, res) => {
 
     console.log(user.username, "user is created");
 
-
     return res
       .status(StatusCodes.CREATED)
       .json({ message: "The endUser registered successfully" });
-
   } catch (err) {
-
     console.error("Error creating user:", err);
     Sentry.captureException(err);
 
@@ -92,14 +89,10 @@ export const login = async (req, res) => {
 
     console.log("Sending login response with token:", token);
 
-
     return res.status(StatusCodes.OK).json({ token });
-
   } catch (err) {
-
     console.log("Server error while login", err);
     Sentry.captureException(err);
-
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -108,7 +101,6 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-
   try {
     let authHeader = req.headers["authorization"];
     let token = authHeader && authHeader.split(" ")[1];
@@ -138,8 +130,26 @@ export const logout = async (req, res) => {
 };
 
 export const allusers = async (req, res) => {
+  let { page, limit } = req.query;
+
+  let offset = (page - 1) * limit;
+
+  ///dynamic key for the redis cache
+  const cachekey = `allusers:${page}:${limit}`;
+
   try {
-    let allusers = await UsersDetails.find({});
+    let cachedData = await redisClient.get(cachekey);
+
+    if (cachedData) {
+      console.log("cache hit", cachedData);
+      return res.status(StatusCodes.OK).json(JSON.parse(cachedData));
+    }
+
+    let allusers = await UsersDetails.find({}).skip(offset).limit(limit);
+
+    await redisClient.set(cachekey, JSON.stringify(allusers), {
+      EX: 100,
+    });
 
     return res.status(StatusCodes.OK).json(allusers);
   } catch (err) {

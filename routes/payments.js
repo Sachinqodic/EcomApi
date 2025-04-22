@@ -18,16 +18,9 @@ router.post("/pay/:id", auth, payment);
 
 router.post('/webhook',express.raw({type:'application/json'}),webhooks)
 
-
 router.post('/payoutcreate',PayoutRequest);
 
 router.get('/payoutlist',GetAllPayoutLists);
-
-
-
-
-
-
 
 router.get("/getallPaidOrders", auth, Role, getallPaidOrders); // PAGINATION
 
