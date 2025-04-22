@@ -16,7 +16,7 @@ const router = express.Router();
 
 router.post("/pay/:id", auth, payment);
 
-router.post('/webhook',webhooks)
+router.post('/webhook',express.raw({type:'application/json'}),webhooks)
 
 
 router.post('/payoutcreate',PayoutRequest);

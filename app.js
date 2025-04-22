@@ -8,13 +8,20 @@ import bodyParser from "body-parser";
 import routes from "./routes/index.js";
 import { StatusCodes } from "http-status-codes";
 import { connectDB } from "./utils/dbConnection.js";
+import { webhooks } from "./controllers/payment.js";
+
+
+
+
 dotenv.config();
 
 const app = express();
+
+
+app.post("/payment/webhook", express.raw({ type: "application/json" }), webhooks);
 app.use(express.json());
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+
 
 console.log("Mongo URI", process.env.MONGO_URL);
 
