@@ -1,5 +1,5 @@
-import "../instrument.js";
-import * as Sentry from "@sentry/node";
+// import "../instrument.js";
+// import * as Sentry from "@sentry/node";
 import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
@@ -150,7 +150,7 @@ export const multipleProductsbooking = async (req, res) => {
     return res.status(StatusCodes.OK).json(order);
   } catch (err) {
     console.log("server error while booking the products:", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -191,7 +191,7 @@ export const getallorders = async (req, res) => {
     return res.status(StatusCodes.OK).json(allorders);
   } catch (err) {
     console.log("error while getting all  the orders:", err);
-    Sentry.captureException(err);
+   // Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -222,7 +222,7 @@ export const orderDetails = async (req, res) => {
     return res.status(StatusCodes.OK).json(allorders);
   } catch (err) {
     consosle.log("server error while getting the order details:", err);
-    Sentry.captureException(err);
+   // Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -238,7 +238,7 @@ export const myorders = async (req, res) => {
     return res.status(StatusCodes.OK).json(orders);
   } catch (err) {
     console.log("error while getting all  the orders:", err);
-    Sentry.captureException(err);
+   // Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -305,7 +305,7 @@ export const updatingbooking = async (req, res) => {
     return res.status(StatusCodes.OK).json(book);
   } catch (err) {
     console.log("server error while updating the order:", err);
-    Sentry.captureException(err);
+   // Sentry.captureException(err);
 
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -345,7 +345,7 @@ export const cancelorder = async (req, res) => {
       .json({ message: "Order cancelled successfully" });
   } catch (err) {
     console.log("server error while cancelling the booking");
-    Sentry.captureException(err);
+  //  Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)

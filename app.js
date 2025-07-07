@@ -1,5 +1,5 @@
-import "./instrument.js";
-import * as Sentry from "@sentry/node";
+// import "./instrument.js";
+// import * as Sentry from "@sentry/node";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -26,7 +26,7 @@ app.use(cors());
 console.log("Mongo URI", process.env.MONGO_URL);
 
 //sentry set up
-Sentry.setupExpressErrorHandler(app);
+//Sentry.setupExpressErrorHandler(app);
 
 //db connection
 connectDB();

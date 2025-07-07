@@ -1,10 +1,11 @@
-import "../instrument.js";
-import * as Sentry from "@sentry/node";
+// import "../instrument.js";
+// import * as Sentry from "@sentry/node";
 import mongoose from "mongoose";
 import Orders from "../models/Orders.js";
 import Products from "../models/Products.js";
 import { StatusCodes } from "http-status-codes";
 import UsersDetails from "../models/UsersDetails.js";
+import redisClient from "../redis/redisClient.js";
 
 
 
@@ -49,16 +50,16 @@ export const AddingProduct = async (req, res) => {
     // await session.endSession();
 
 
-    req.session=session;
+    req.session = session;
 
     return res
       .status(StatusCodes.CREATED)
       .json({ message: "The product added successfully" });
 
-      
+
   } catch (err) {
     console.error("Error adding the product:", err);
-    Sentry.captureException(err);
+    // Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -110,7 +111,7 @@ export const AddingProduct = async (req, res) => {
 
 // Fix: Needs to be more cleaner and readable, This controller requires formating
 export const bodygetallproducts = async (req, res) => {
-  const  { filter, search } = req.body;
+  const { filter, search } = req.body;
 
   // pagination
   let { page, limit } = req.query;
@@ -160,9 +161,10 @@ export const bodygetallproducts = async (req, res) => {
     if (filter) {
       console.log({ ...filter });
       console.log("in side the filter field");
-      
+
       obj = { ...obj, ...filter };
     }
+    console.log(obj)
 
     let data1 = await Products.aggregate([
       { $match: obj },
@@ -218,7 +220,7 @@ export const bodygetallproducts = async (req, res) => {
     return res.status(StatusCodes.OK).json(Response);
   } catch (err) {
     console.log("error while getting all  the products:", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -228,13 +230,27 @@ export const bodygetallproducts = async (req, res) => {
 
 export const getProduct = async (req, res) => {
   try {
+
     let id = req.params.id;
+
+    let cashKey = `id:${id}`;
+    let cachedData = await redisClient.get(cashKey);
+
+    if (cachedData) {
+      console.log("data from the Redis-Cached")
+      return res.status(StatusCodes.OK).json(cachedData);
+    }
+
     let product = await Products.findById(id);
+
+    await redisClient.set(cashKey, JSON.stringify(product), {
+      EX: 20
+    })
 
     return res.status(StatusCodes.OK).json(product);
   } catch (err) {
     console.log("server error while gettings the proucts  BY ID:", err);
-    Sentry.captureException(err);
+    // Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -244,12 +260,42 @@ export const getProduct = async (req, res) => {
 
 export const getMostRatingProducts = async (req, res) => {
   try {
-    let pro = await Products.find({ Ratings: { $gt: 3.9 } });
+
+    let { page, limit } = req.query;
+    const offset = (page - 1) * limit;
+    if (!page) {
+      page = 1
+    }
+
+    if (!limit) {
+      limit = 5
+    }
+
+    let cacheKey = `page:${page} limit:${limit}`
+
+    const cachedData = await redisClient.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Data getting from the redis-Cache:", cachedData);
+      return res.status(StatusCodes.OK).json(cachedData)
+    }
+
+
+
+
+    let pro = await Products.find({ Ratings: { $gt: 3.9 } }).skip(parseInt(offset))
+      .limit(parseInt(limit));
+
+    await redisClient.set(cacheKey, JSON.stringify(pro), {
+      EX: 20
+    });
+
+
 
     return res.status(StatusCodes.OK).json(pro);
   } catch (err) {
     console.log("server error while getting the most rating products", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)

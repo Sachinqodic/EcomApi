@@ -53,7 +53,7 @@ export const registerValidator = (req, res, next) => {
     next();
   } catch (err) {
     console.log("server error while checking the register validation:", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
