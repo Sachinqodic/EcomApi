@@ -1,6 +1,7 @@
 import express from "express";
 import auth from "../middleware/authmiddle.js";
 import productValidation from "../validators/products.js";
+
 import {
   AddingProduct,
   //getAllProducts,

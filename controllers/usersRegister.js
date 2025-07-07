@@ -1,5 +1,5 @@
-import "../instrument.js";
-import * as Sentry from "@sentry/node";
+// import "../instrument.js";
+// import * as Sentry from "@sentry/node";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
@@ -38,7 +38,7 @@ export const register = async (req, res) => {
       .json({ message: "The endUser registered successfully" });
   } catch (err) {
     console.error("Error creating user:", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -92,7 +92,7 @@ export const login = async (req, res) => {
     return res.status(StatusCodes.OK).json({ token });
   } catch (err) {
     console.log("Server error while login", err);
-    Sentry.captureException(err);
+    //  Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -121,7 +121,7 @@ export const logout = async (req, res) => {
     return res.json({ message: "Logout successful" });
   } catch (err) {
     console.log("server error while logging out:", err);
-    Sentry.captureException(err);
+    // Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -154,7 +154,7 @@ export const allusers = async (req, res) => {
     return res.status(StatusCodes.OK).json(allusers);
   } catch (err) {
     console.log("error while getting all  the users:", err);
-    Sentry.captureException(err);
+   // Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)

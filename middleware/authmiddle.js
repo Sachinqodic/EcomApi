@@ -1,5 +1,5 @@
-import "../instrument.js";
-import * as Sentry from "@sentry/node";
+// import "../instrument.js";
+// import * as Sentry from "@sentry/node";
 import jwt from "jsonwebtoken";
 import Logs from "../models/LoginLogoutDetails.js";
 import { StatusCodes } from "http-status-codes";
@@ -39,7 +39,7 @@ export default async (req, res, next) => {
     next(); // to pass the contolle to the next middleware are controller logic
   } catch (err) {
     console.log("server error in the middleware:", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
 
     return res
       .status(StatusCodes.UNAUTHORIZED)

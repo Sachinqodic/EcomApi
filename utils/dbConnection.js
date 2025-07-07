@@ -1,5 +1,5 @@
-import "../instrument.js";
-import * as Sentry from "@sentry/node";
+//import "../instrument.js";
+// import * as Sentry from "@sentry/node";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 
@@ -17,6 +17,6 @@ export const connectDB = async () => {
     console.log("Database connection established successfully");
   } catch (err) {
     console.error("Database connection failed:", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
   }
 };

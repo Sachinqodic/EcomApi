@@ -39,7 +39,7 @@ export const loginValidator = (req, res, next) => {
     next();
   } catch (err) {
     console.log("server error while checking the login validation:", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
