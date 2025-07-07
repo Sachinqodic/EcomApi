@@ -1,5 +1,5 @@
-import "../instrument.js";
-import * as Sentry from "@sentry/node";
+// import "../instrument.js";
+// import * as Sentry from "@sentry/node";
 import { StatusCodes } from "http-status-codes";
 
 export default async (req, res, next) => {
@@ -18,7 +18,7 @@ export default async (req, res, next) => {
     next();
   } catch (err) {
     console.log("server error while checking admin role:", err);
-    Sentry.captureException(err);
+    //Sentry.captureException(err);
 
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
